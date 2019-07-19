@@ -1,0 +1,22 @@
+{
+  "name": "frp-backend",
+  "version": "0.0.1",
+  "description": "Functional Reactive Programming Backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soney/frp-backend.git"
+  },
+  "author": "Steve Oney",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/soney/frp-backend/issues"
+  },
+  "homepage": "https://github.com/soney/frp-backend#readme",
+  "dependencies": {
+    "typescript": "^3.5.3"
+  }
+}
