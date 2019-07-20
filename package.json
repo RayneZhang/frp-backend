@@ -4,6 +4,8 @@
   "description": "Functional Reactive Programming Backend",
   "main": "index.js",
   "scripts": {
+    "build": "npx tsc",
+    "run": "node built/index.js",
     "test": "npm test"
   },
   "repository": {
@@ -17,6 +19,7 @@
   },
   "homepage": "https://github.com/soney/frp-backend#readme",
   "dependencies": {
+    "rxjs": "^6.5.2",
     "typescript": "^3.5.3"
   }
 }

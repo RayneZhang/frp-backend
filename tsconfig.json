@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "lib": ["es2015", "dom"],
+        "rootDir": "./src",
+        "outDir": "./built",
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}

@@ -1,0 +1,20 @@
+"use strict";
+exports.__esModule = true;
+var WrappedObservable = /** @class */ (function () {
+    function WrappedObservable(observable) {
+        this.observable = observable;
+    }
+    WrappedObservable.prototype.subscribe = function (_a) {
+        var next = _a.next, error = _a.error, complete = _a.complete;
+        var observer = { next: next, error: error, complete: complete };
+        return this.observable.subscribe(observer);
+    };
+    WrappedObservable.prototype.unsubscribe = function (subscription) {
+        subscription.unsubscribe();
+    };
+    WrappedObservable.prototype.pipe = function (func) {
+        return new WrappedObservable(this.observable.pipe(func));
+    };
+    return WrappedObservable;
+}());
+exports.WrappedObservable = WrappedObservable;
