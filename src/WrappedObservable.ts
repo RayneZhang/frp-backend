@@ -9,9 +9,7 @@ export class WrappedObservable<T> {
         const observer: Observer<T> = { next, error, complete };
         return this.observable.subscribe(observer);
     }
-    public unsubscribe(subscription: Subscription): void {
-        subscription.unsubscribe();
-    }
+
     public pipe<O> (func: OperatorFunction<T, O>): WrappedObservable<O> {
         return new WrappedObservable<O>(this.observable.pipe(func));
     }

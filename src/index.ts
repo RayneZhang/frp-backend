@@ -5,15 +5,16 @@ import { WrappedOp } from './WrappedOp';
 
 const a = new WrappedSignal<number>(1);
 const b = new WrappedSignal<number>(2);
-const plusOne = new WrappedOp<[number, number], number>(([x, y]: [number, number]): number => {
+const plusOne = new WrappedOp<number, number>((x: number): number => {
+    console.log(x);
     return x + 1;
 }); 
 
-plusOne.setInput([a, b]);
-plusOne.getOutput().subscribe({
-    next: (v: number): void => {
-        console.log(v);
-    }
-})
+plusOne.setInput(a);
+// plusOne.getOutput().subscribe({
+//     next: (v: number): void => {
+//         console.log(v);
+//     }
+// })
 a.next(20);
 a.next(30);

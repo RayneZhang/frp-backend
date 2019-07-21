@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 
 export class WrappedOp<I, O> {
     private input: WrappedObservable<I>;
-    private output: WrappedObservable<O> = new WrappedSignal<O>();
+    private output: WrappedSignal<O> = new WrappedSignal<O>();
     private subscription: Subscription;
     public constructor(private func: UnaryFunction<I, O>) {
     }
@@ -14,17 +14,14 @@ export class WrappedOp<I, O> {
         if(this.subscription) {
             this.subscription.unsubscribe();
         }
-        this.output = this.input.pipe<O>(map(this.func));
-        // (i: Observable<I>): Observable<O> => {
-        //     return map
-        //     console.log(i);
-        //     const subscription = i.subscribe({
-        //         next: (inp: I): O => {
-        //             return this.func(inp);
-        //         }
-        //     });
-        //     return null;
-        // });
+        this.subscription = this.input.subscribe({
+            next: (e: I): void => {
+                this.output.next(this.func(e));
+            },
+            error: (err: any): void => {
+                this.output.error(err);
+            }
+        })
     }
     public getOutput(): WrappedObservable<O> {
         return this.output;

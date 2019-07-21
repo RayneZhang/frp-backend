@@ -9,9 +9,6 @@ var WrappedObservable = /** @class */ (function () {
         var observer = { next: next, error: error, complete: complete };
         return this.observable.subscribe(observer);
     };
-    WrappedObservable.prototype.unsubscribe = function (subscription) {
-        subscription.unsubscribe();
-    };
     WrappedObservable.prototype.pipe = function (func) {
         return new WrappedObservable(this.observable.pipe(func));
     };

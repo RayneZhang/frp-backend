@@ -20,9 +20,9 @@ var WrappedSignal = /** @class */ (function (_super) {
     function WrappedSignal(value) {
         return _super.call(this, new rxjs_1.BehaviorSubject(value)) || this;
     }
-    WrappedSignal.prototype.next = function (value) {
-        this.observable.next(value);
-    };
+    WrappedSignal.prototype.next = function (value) { this.observable.next(value); };
+    WrappedSignal.prototype.error = function (err) { this.observable.error(err); };
+    WrappedSignal.prototype.complete = function () { this.observable.complete(); };
     WrappedSignal.prototype.getValue = function () {
         return this.observable.getValue();
     };
