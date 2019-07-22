@@ -12,6 +12,9 @@ var WrappedObservable = /** @class */ (function () {
     WrappedObservable.prototype.pipe = function (func) {
         return new WrappedObservable(this.observable.pipe(func));
     };
+    WrappedObservable.prototype.getObservable = function () {
+        return this.observable;
+    };
     return WrappedObservable;
 }());
 exports.WrappedObservable = WrappedObservable;

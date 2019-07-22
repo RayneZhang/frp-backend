@@ -2,7 +2,6 @@ import { Observable, Observer, Subscription, OperatorFunction } from "rxjs";
 
 export class WrappedObservable<T> {
     public constructor(protected observable: Observable<T>) {
-        
     }
 
     public subscribe({ next, error, complete }: { next: (e: T) => void; error?: (err: any) => void; complete?: () => void; }): Subscription {
@@ -12,5 +11,9 @@ export class WrappedObservable<T> {
 
     public pipe<O> (func: OperatorFunction<T, O>): WrappedObservable<O> {
         return new WrappedObservable<O>(this.observable.pipe(func));
+    }
+
+    public getObservable(): Observable<T> { 
+        return this.observable;
     }
 }

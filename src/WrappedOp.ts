@@ -1,29 +1,32 @@
 import { WrappedObservable } from "./WrappedObservable";
 import { WrappedSignal } from "./WrappedSignal";
-import { Subscription, OperatorFunction, UnaryFunction, Observable } from "rxjs";
+import { Subscription, OperatorFunction, UnaryFunction, Observable, BehaviorSubject } from "rxjs";
 import { map } from 'rxjs/operators';
 
-export class WrappedOp<I, O> {
-    private input: WrappedObservable<I>;
-    private output: WrappedSignal<O> = new WrappedSignal<O>();
+export class WrappedOp<I extends Array<any>, O extends Array<any>> extends WrappedObservable<O> {
+    public static NO_OUT = null;
+
+    protected observable: BehaviorSubject<O>;
+
     private subscription: Subscription;
-    public constructor(private func: UnaryFunction<I, O>) {
+    public constructor(private func: UnaryFunction<I, O>, initialValue=WrappedOp.NO_OUT) {
+        super(new BehaviorSubject<O>(initialValue));
     }
-    public setInput(i: WrappedObservable<I>): void {
-        this.input = i;
+    public setInput(inputs: WrappedObservable<I>): void {
         if(this.subscription) {
             this.subscription.unsubscribe();
         }
-        this.subscription = this.input.subscribe({
+        this.subscription = inputs.subscribe({
             next: (e: I): void => {
-                this.output.next(this.func(e));
+                console.log(e);
+                this.observable.next(this.func(e));
             },
             error: (err: any): void => {
-                this.output.error(err);
+                this.observable.error(err);
             }
-        })
+        });
     }
-    public getOutput(): WrappedObservable<O> {
-        return this.output;
+    public complete(): void {
+        this.observable.complete();
     }
 }
