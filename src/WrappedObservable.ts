@@ -9,7 +9,7 @@ export class WrappedObservable<T> {
         return this.observable.subscribe(observer);
     }
 
-    public pipe<O> (func: OperatorFunction<T, O>): WrappedObservable<O> {
+    public pipe<O> (func: any): WrappedObservable<O> {
         return new WrappedObservable<O>(this.observable.pipe(func));
     }
 

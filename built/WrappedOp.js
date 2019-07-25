@@ -12,14 +12,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var WrappedObservable_1 = require("./WrappedObservable");
 var rxjs_1 = require("rxjs");
 var WrappedOp = /** @class */ (function (_super) {
     __extends(WrappedOp, _super);
     function WrappedOp(func, initialValue) {
         if (initialValue === void 0) { initialValue = WrappedOp.NO_OUT; }
-        var _this = _super.call(this, new rxjs_1.BehaviorSubject(initialValue)) || this;
+        var _this = _super.call(this, new rxjs_1.ReplaySubject(initialValue)) || this;
         _this.func = func;
         return _this;
     }
@@ -30,7 +30,6 @@ var WrappedOp = /** @class */ (function (_super) {
         }
         this.subscription = inputs.subscribe({
             next: function (e) {
-                console.log(e);
                 _this.observable.next(_this.func(e));
             },
             error: function (err) {
@@ -45,3 +44,4 @@ var WrappedOp = /** @class */ (function (_super) {
     return WrappedOp;
 }(WrappedObservable_1.WrappedObservable));
 exports.WrappedOp = WrappedOp;
+//# sourceMappingURL=WrappedOp.js.map

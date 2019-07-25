@@ -12,7 +12,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var rxjs_1 = require("rxjs");
 var WrappedObservable_1 = require("./WrappedObservable");
 var WrappedEventStreamSource = /** @class */ (function (_super) {
@@ -26,3 +26,4 @@ var WrappedEventStreamSource = /** @class */ (function (_super) {
     return WrappedEventStreamSource;
 }(WrappedObservable_1.WrappedObservable));
 exports.WrappedEventStreamSource = WrappedEventStreamSource;
+//# sourceMappingURL=WrappedEventStream.js.map

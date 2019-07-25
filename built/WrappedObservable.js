@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var WrappedObservable = /** @class */ (function () {
     function WrappedObservable(observable) {
         this.observable = observable;
@@ -18,3 +18,4 @@ var WrappedObservable = /** @class */ (function () {
     return WrappedObservable;
 }());
 exports.WrappedObservable = WrappedObservable;
+//# sourceMappingURL=WrappedObservable.js.map
