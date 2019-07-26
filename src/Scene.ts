@@ -2,8 +2,9 @@ import { WrappedSignal } from './WrappedSignal';
 import { WrappedEventStreamSource } from './WrappedEventStream';
 import { WrappedObservable } from './WrappedObservable';
 import { WrappedOp } from './WrappedOp';
-import { combineLatest, from, merge, Observable, of } from "rxjs";
+import { combineLatest, from, merge, Observable, of, BehaviorSubject, ReplaySubject } from "rxjs";
 import { delay, map, pluck, startWith, take } from "rxjs/operators";
+import { ops, observables } from './Ops';
 
 interface FBArg {
     name: string,
@@ -21,21 +22,15 @@ interface FBOp {
     output: FBOut[],
     fn: (...args: any[]) => any
 }
-interface FBOps {
+export interface FBOps {
     [name: string]: FBOp
 }
-const ops: FBOps = {
-    '+': {
-        args: [{name: 'nums', rest: true}],
-        output: [{name: 'sum'}],
-        fn: (args: number[]): [number] => {
-            return [args.reduce((pv: number, cv: number) => pv + cv, 0)];
-        }
-    }
-};
 
 interface FBParam {
-    name: string
+    name: string,
+    default?: any,
+    optional?: boolean,
+    type?: string
 }
 interface FBObservable {
     args: FBArg[],
@@ -44,45 +39,10 @@ interface FBObservable {
     fn(...args: any[]): any;
 }
 
-interface FBObservables {
+export interface FBObservables {
     [name: string]: FBObservable
 }
 
-const observables: FBObservables = {
-    'gen': {
-        args: [],
-        output: [ { name: ''}],
-        params: [ { name: 'delay' }],
-        fn: (delay) => {
-            return new Observable(sub => {
-                let timeout = null;
-            
-                // recursively send a random number to the subscriber
-                // after a random delay
-                (function push() {
-                    timeout = setTimeout(
-                        () => {
-                            sub.next(Math.random());
-                            push();
-                        },
-                        delay
-                    );
-                })();
-            
-                // clear any pending timeout on teardown
-                return () => clearTimeout(timeout);
-            }).pipe(startWith(Math.random()));
-        }
-    },
-    'take': {
-        args: [],
-        output: [ { name: ''}],
-        params: [ { name: 'count' }],
-        fn: (count) => {
-            return take(count);
-        }
-    }
-};
 
 interface FBSceneBase {
     id: string
@@ -108,44 +68,68 @@ interface FBScene {
     scene: Array<FBSceneObject>
 }
 
+export class SceneOp {
+
+}
+
+export class SceneEdge {
+
+}
+
 
 export class Scene {
     private static id_num: number = 0;
-    private wrappedObservables: { [id: string]: WrappedObservable<any> };
-    private observables: { [id: string]: Observable<any> };
+    private wrappedObservables: Map<string, WrappedObservable<any>> = new Map();
+    // { [id: string]: WrappedObservable<any> } = {};
+    private observables: Map<string, Observable<any>> = new Map();
+    // { [id: string]: Observable<any> } = {};
     constructor(private state: FBScene = { scene: [] }) {
         this.updateScene();
     }
     private guid(): string { return `id-${Scene.id_num++}`; }
-    public addOp(op: string, input: string[]): string {
+    public delete(id: string): void {
+
+    }
+    public addOp(op: string, input: string[] = []): string {
         const id = this.guid();
-        this.state.scene.push({
+        const opValue: FBSceneOp = {
             type: 'op',
             id, op, input
-        });
+        };
+        this.state.scene.push(opValue);
+        this.updateObs(opValue);
+        this.updateOpInput(opValue);
+        this.subscribeToObservable(opValue);
         return id;
     }
     public addConstant(value: any): string {
         const id = this.guid();
-        this.state.scene.push({
+        const constantVal: FBSceneConstant = {
             type: 'constant',
             id, value
-        });
+        };
+        this.state.scene.push(constantVal);
+        this.updateObs(constantVal);
+        this.subscribeToObservable(constantVal);
         return id;
     }
     public addObservable(op: string, parameters: any[] = [], pipe?: string): string {
         const id = this.guid();
-        this.state.scene.push({
+        const observableVal: FBSceneObservable = {
             type: 'observable',
             id, op, parameters, pipe
-        });
+        };
+        this.state.scene.push(observableVal);
+        this.updateObs(observableVal);
+        this.pipeObservable(observableVal);
+        this.subscribeToObservable(observableVal);
         return id;
     }
     private updateObs(obj: FBSceneObject): void {
         const { id, type } = obj;
         if(type === 'constant') {
             const { value } = obj as FBSceneConstant;
-            this.wrappedObservables[id] = new WrappedObservable<any>(of(value));
+            this.wrappedObservables.set(id, new WrappedObservable<any>(of(value)));
         } else if(type === 'op') {
             const { op } = obj as FBSceneOp;
             const opInfo = ops[op];
@@ -163,19 +147,35 @@ export class Scene {
                 return rv;
             };
             const wop = new WrappedOp(mappedOutputs);
-            this.wrappedObservables[id] = wop;
+            this.wrappedObservables.set(id, wop);
         } else if(type === 'observable') {
             const { op, parameters } = obj as FBSceneObservable;
-            const observable = observables[op].fn(...parameters);
-            this.observables[id] = observable;
+            const { fn, params } = observables[op];
+            const ps = params.map((p, i) => {
+                const def = p.default;
+                const { optional } = p;
+                if(parameters.length > i) {
+                    return parameters[i];
+                } else if(def) {
+                    return def;
+                } else if (optional) {
+                    return null;
+                } else {
+                    throw new Error();
+                }
+            });
+            const observable = fn(...ps);
+            this.observables.set(id, observable);
         }
     }
     private pipeObservable(obs: FBSceneObservable): void {
         const { id, type, op, pipe } = obs;
+        const observable = this.observables.get(id);
         if(pipe) {
-            this.wrappedObservables[id] = this.wrappedObservables[pipe].pipe(this.observables[id]);
+            const wrappedObservable = this.wrappedObservables.get(pipe);
+            this.wrappedObservables.set(id, wrappedObservable.pipe(observable));
         } else {
-            this.wrappedObservables[id] = new WrappedObservable<any>(this.observables[id]);
+            this.wrappedObservables.set(id, new WrappedObservable<any>(observable));
         }
     }
     private updateOpInput(op: FBSceneOp): void {
@@ -184,28 +184,44 @@ export class Scene {
             if(inp_id.indexOf('.') >= 0) {
                 const [obj_id, prop_name] = inp_id.split('.');
 
-                const observable = this.wrappedObservables[obj_id].getObservable();
+                const observable = this.wrappedObservables.get(obj_id).getObservable();
                 const propObservable = observable.pipe(pluck(prop_name));
                 return propObservable;
             } else {
-                return this.wrappedObservables[inp_id].getObservable();
+                return this.wrappedObservables.get(inp_id).getObservable();
             }
         };
         const inps = new WrappedObservable(combineLatest<any>(...input.map(getInput)));
-        const observable = this.wrappedObservables[id] as WrappedOp<any, any>;
+        const observable = this.wrappedObservables.get(id) as WrappedOp<any, any>;
         observable.setInput(inps);
     }
+    private subscribeToObservable(obs): void {
+        const { id } = obs;
+        this.wrappedObservables.get(id).subscribe({
+            next: (x) => {
+                console.log(id, 'is now', x);
+            }
+        });
+    };
     private updateScene() {
         this.state.scene.forEach((obj) => { this.updateObs(obj); });
         this.state.scene.filter((o) => o.type === 'observable').forEach((obs) => { this.pipeObservable(obs as FBSceneObservable); });
         this.state.scene.filter((o) => o.type === 'op').forEach((op) => { this.updateOpInput(op as FBSceneOp); });
-        this.state.scene.forEach((x) => {
-            const { id } = x;
-            this.wrappedObservables[id].subscribe({
-                next: (x) => {
-                    console.log(id, 'is now', x);
-                }
-            });
-        });
+        this.state.scene.forEach((o) => { this.subscribeToObservable(o); });
     }
 }
+
+/* API for recording data dependencies
+Drawing an edge represents the dependency between the two objects.
+Want a list of all of the edges (source and target for every edge).
+
+Source and target objects should have attributes....edge between a cube and sphere, which attribute is it connecting?
+
+Adding edges into the state of the system, would be useful for modifying or deleting an edge
+
+
+Every edge will have a unique id
+Edges should be represented in a class
+
+Operations/everything should be their own object
+*/
