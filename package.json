@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/soney/frp-backend#readme",
   "dependencies": {
+    "immutability-helper": "^3.0.1",
     "rxjs": "^6.5.2",
     "typescript": "^3.5.3"
   }

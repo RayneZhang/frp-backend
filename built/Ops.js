@@ -1,38 +1,28 @@
 "use strict";
 exports.__esModule = true;
-var rxjs_1 = require("rxjs");
+var Node_1 = require("./Node");
 var operators_1 = require("rxjs/operators");
 exports.ops = {
-    '+': {
-        args: [{ name: 'nums', rest: true }],
-        output: [{ name: 'sum' }],
-        fn: function (args) {
-            return [args.reduce(function (pv, cv) { return pv + cv; }, 0)];
+    '+': function () { return new Node_1.OpNode(function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
         }
-    }
-};
-exports.observables = {
-    'gen': {
-        args: [],
-        output: [{ name: '' }],
-        params: [{ name: 'delay', "default": 5 }],
-        fn: function (delay) {
-            var bs = new rxjs_1.ReplaySubject(Math.random());
-            var interval = setInterval(function () {
-                var val = Math.random();
-                // console.log(val);
-                bs.next(val);
-            }, delay);
-            return bs;
-        }
-    },
-    'take': {
-        args: [],
-        output: [{ name: '' }],
-        params: [{ name: 'count' }],
-        fn: function (count) {
-            return operators_1.take(count);
-        }
-    }
+        return args.reduce(function (pv, cv) { return pv + cv; }, 0);
+    }, [{ name: Node_1.PROP_DEFAULT_NAME, rest: true }], { name: Node_1.PROP_DEFAULT_NAME }); },
+    '-': function () { return new Node_1.OpNode(function (a, b) {
+        return a - b;
+    }, [{ name: 'a' }, { name: 'b' }], { name: Node_1.PROP_DEFAULT_NAME }); },
+    '*': function () { return new Node_1.OpNode(function (a, b) {
+        return a * b;
+    }, [{ name: 'a' }, { name: 'b' }], { name: Node_1.PROP_DEFAULT_NAME }); },
+    '/': function () { return new Node_1.OpNode(function (a, b) {
+        return a / b;
+    }, [{ name: 'a' }, { name: 'b' }], { name: Node_1.PROP_DEFAULT_NAME }); },
+    'gen': function () { return new Node_1.GenNode(); },
+    'take': function () { return new Node_1.OpNode(function (stream, count) {
+        console.log(stream, count);
+        return stream.pipe(operators_1.take(count));
+    }, [{ name: 'stream', raw: true }, { name: 'count' }], { name: Node_1.PROP_DEFAULT_NAME }); }
 };
 //# sourceMappingURL=Ops.js.map
