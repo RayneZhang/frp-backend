@@ -1,7 +1,7 @@
-import { Observable, ReplaySubject, ObservableInput, from, of, BehaviorSubject, combineLatest, merge, isObservable } from "rxjs";
-import { pluck, map, mergeMap, switchMap } from "rxjs/operators";
+import { Observable, of, BehaviorSubject, combineLatest, isObservable, Subject } from "rxjs";
+import { pluck, map, mergeMap } from "rxjs/operators";
 import { Edge } from "./Edge";
-import update, {extend} from 'immutability-helper';
+import update from 'immutability-helper';
 import { keys } from 'lodash';
 import _default from "immutability-helper";
 
@@ -11,7 +11,7 @@ interface NodeOutput {
     [name: string]: any
 };
 
-interface InputInfo {
+export interface InputInfo {
     name: string,
     optional?: boolean,
     default?: any
@@ -19,17 +19,51 @@ interface InputInfo {
     type?: string,
     raw?: boolean
 }
-interface OutputInfo {
+
+export interface OutputInfo {
     name: string,
     type?: string,
     raw?: boolean
 }
+
+export interface NodeLayout {
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+    inputs: {
+        name: string,
+        x: number,
+        y: number
+    }[],
+    outputs: {
+        name: string,
+        x: number,
+        y: number
+    }[],
+}
+
 export abstract class Node {
+    private static nodeCount: number = 1;
+
+    private id: number;
     private incomingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
     private outgoingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
+    private layout: Subject<NodeLayout> = new BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: [], outputs: [] });
     protected inputStream: Observable<any[]>;
+
     public constructor() {
+        this.id = Node.nodeCount++;
     }
+
+    public getLayoutStream(): Observable<NodeLayout> {
+        return this.layout;
+    }
+
+    public setLayout(l: NodeLayout): void {
+        this.layout.next(l);
+    }
+
     protected establishInputStream(): void {
         //InputInfoStream: A stream of InputInfo arrays
         const inputInfoStream = this.getInputInfoStream();
@@ -120,6 +154,8 @@ export abstract class Node {
         const outputStream = this.getOutputStream();
         return outputStream.pipe(pluck(prop));
     }
+    public getID(): number { return this.id; }
+    public getIDString(): string { return `${this.getID()}`; }
 }
 
 export class ConstantNode extends Node {

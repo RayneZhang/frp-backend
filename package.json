@@ -19,9 +19,13 @@
   },
   "homepage": "https://github.com/soney/frp-backend#readme",
   "dependencies": {
+    "dagre": "^0.8.4",
     "immutability-helper": "^3.0.1",
     "lodash": "^4.17.15",
     "rxjs": "^6.5.2",
     "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.42"
   }
 }

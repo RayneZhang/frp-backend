@@ -23,7 +23,15 @@ var Node = /** @class */ (function () {
     function Node() {
         this.incomingEdges = new rxjs_1.BehaviorSubject([]);
         this.outgoingEdges = new rxjs_1.BehaviorSubject([]);
+        this.layout = new rxjs_1.BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: [], outputs: [] });
+        this.id = Node.nodeCount++;
     }
+    Node.prototype.getLayoutStream = function () {
+        return this.layout;
+    };
+    Node.prototype.setLayout = function (l) {
+        this.layout.next(l);
+    };
     Node.prototype.establishInputStream = function () {
         //InputInfoStream: A stream of InputInfo arrays
         var inputInfoStream = this.getInputInfoStream();
@@ -111,6 +119,9 @@ var Node = /** @class */ (function () {
         var outputStream = this.getOutputStream();
         return outputStream.pipe(operators_1.pluck(prop));
     };
+    Node.prototype.getID = function () { return this.id; };
+    Node.prototype.getIDString = function () { return "" + this.getID(); };
+    Node.nodeCount = 1;
     return Node;
 }());
 exports.Node = Node;
