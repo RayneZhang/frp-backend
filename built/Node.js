@@ -16,17 +16,24 @@ exports.__esModule = true;
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var immutability_helper_1 = require("immutability-helper");
+var lodash_1 = require("lodash");
 exports.PROP_DEFAULT_NAME = '';
+;
 var Node = /** @class */ (function () {
     function Node() {
         this.incomingEdges = new rxjs_1.BehaviorSubject([]);
         this.outgoingEdges = new rxjs_1.BehaviorSubject([]);
     }
     Node.prototype.establishInputStream = function () {
+        //InputInfoStream: A stream of InputInfo arrays
         var inputInfoStream = this.getInputInfoStream();
-        var inputAndInfo = rxjs_1.combineLatest(inputInfoStream, this.incomingEdges);
+        // inputAndInfo: A stream with length-two items:
+        //    1) the first is an InputInfo array
+        //    2) an array of Edges
+        var inputAndInfo = rxjs_1.combineLatest(this.incomingEdges, inputInfoStream);
+        // this.inputStream: a stream of (arrays of (streams of arg values) )
         this.inputStream = inputAndInfo.pipe(operators_1.map(function (_a) {
-            var inputInfo = _a[0], incomingEdges = _a[1];
+            var incomingEdges = _a[0], inputInfo = _a[1];
             var propStreams = new Map();
             incomingEdges.forEach(function (edge) {
                 var prop = edge.getTo().prop;
@@ -49,7 +56,12 @@ var Node = /** @class */ (function () {
                         args.push.apply(args, props);
                     }
                     else if (props.length === 1) {
-                        args.push(props[0]);
+                        if (raw) {
+                            args.push(rxjs_1.of(props[0]));
+                        }
+                        else {
+                            args.push(props[0]);
+                        }
                     }
                     else if (props.length === 0) {
                         args.push(undefined);
@@ -137,16 +149,39 @@ var StaticInfoNode = /** @class */ (function (_super) {
         _this.outputInfoStream = new rxjs_1.BehaviorSubject(output);
         _this.establishInputStream();
         return _this;
-        // this.out =   this.inputStream.pipe();
     }
     StaticInfoNode.prototype.getOutputStream = function () {
-        return this.out;
+        return this.managedOut;
     };
     StaticInfoNode.prototype.getInputInfoStream = function () {
         return this.inputInfoStream;
     };
     StaticInfoNode.prototype.getOutputInfoStream = function () {
         return this.outputInfoStream;
+    };
+    StaticInfoNode.prototype.establishOutputStream = function () {
+        var outputInfoStream = this.getOutputInfoStream();
+        var outputAndInfo = rxjs_1.combineLatest(this.out, outputInfoStream);
+        this.managedOut = outputAndInfo.pipe(operators_1.mergeMap(function (_a) {
+            var outValue = _a[0], outputInfo = _a[1];
+            var rawProps = new Set(outputInfo.filter(function (oi) { return oi.raw; }).map(function (oi) { return oi.name; }));
+            var individualDictStreams = lodash_1.keys(outValue).map(function (key) {
+                var _a;
+                var val = outValue[key];
+                if (rawProps.has(key) && rxjs_1.isObservable(val)) {
+                    return val.pipe(operators_1.map(function (v) {
+                        var _a;
+                        return (_a = {}, _a[key] = v, _a);
+                    }));
+                }
+                else {
+                    return rxjs_1.of((_a = {}, _a[key] = val, _a));
+                }
+            });
+            return rxjs_1.combineLatest.apply(void 0, individualDictStreams).pipe(operators_1.map(function (val) {
+                return Object.assign.apply(Object, [{}].concat(val));
+            }));
+        }));
     };
     return StaticInfoNode;
 }(Node));
@@ -156,22 +191,22 @@ var OpNode = /** @class */ (function (_super) {
         var _this = _super.call(this, inputs, [output]) || this;
         _this.func = func;
         _this.establishInputStream();
-        //this.inputStream is a stream
-        //    of arrays of streams (values)
-        //   x: (1---2--3)  \
+        // this.inputStream: a stream of (arrays of (streams of arg values) )
+        //   x: (1---2--3) -\
         //                   >-- (+)
-        //   y: (5---6---)  /
-        // Stream( [ Stream(1,2,3), Stream(5,6)])
-        _this.out = _this.inputStream.pipe(operators_1.map(function (inp) {
-            return rxjs_1.combineLatest.apply(void 0, inp); // produce a stream of the latest values for every arg ( stream of arrays ): Stream([3,6])
-        })).pipe(operators_1.mergeMap(function (args) {
-            return args.pipe(operators_1.map(function (args) {
-                var _a;
-                return _a = {},
-                    _a[output.name] = _this.func.apply(_this, args),
-                    _a;
-            }));
+        //   y: (5---6---) -/
+        // this.inputStream: Stream( [ Stream(1,2,3), Stream(5,6) ] )
+        _this.out = _this.inputStream.pipe(operators_1.mergeMap(function (args) {
+            // args is an array of streams
+            return rxjs_1.combineLatest.apply(void 0, args);
+        }), operators_1.map(function (args) {
+            var _a;
+            //args is an array of arg values
+            return _a = {},
+                _a[output.name] = _this.func.apply(_this, args),
+                _a;
         }));
+        _this.establishOutputStream();
         return _this;
     }
     return OpNode;
@@ -199,6 +234,7 @@ var GenNode = /** @class */ (function (_super) {
                 _this.set(delay);
             }
         });
+        _this.establishOutputStream();
         return _this;
     }
     GenNode.prototype.clear = function () {

@@ -3,7 +3,7 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 export interface Loc {
-    node: Node<any, any>,
+    node: Node,
     prop: string,
     // side: 'input' | 'output'
 }

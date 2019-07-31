@@ -3,25 +3,25 @@ import { Node, ConstantNode, OpNode, PROP_DEFAULT_NAME } from './Node';
 import  { ops }  from './Ops';
 import { from } from 'rxjs';
 export class Scene {
-    private nodes: Set<Node<any, any>> = new Set();
+    private nodes: Set<Node> = new Set();
 
-    public addConstant(value: any): Node<null, any> {
-        const node = new ConstantNode<any>(value);
+    public addConstant(value: any): Node {
+        const node = new ConstantNode(value);
         this.addNode(node);
         return node;
     }
 
-    public addOp(name: string): Node<any, any> {
+    public addOp(name: string): Node {
         const opFn = ops[name];
         const op = opFn();
         this.addNode(op);
         return op;
     }
 
-    private addNode(node: Node<any, any>): void {
+    private addNode(node: Node): void {
         this.nodes.add(node);
     }
-    public addEdge(from: Loc|Node<any, any>, to: Loc|Node<any, any>): Edge {
+    public addEdge(from: Loc|Node, to: Loc|Node): Edge {
         if(from instanceof Node) {
             from = { node: from, prop: PROP_DEFAULT_NAME };
         }
@@ -41,7 +41,7 @@ export class Scene {
         to.node.removeIncomingEdge(edge);
     }
 
-    public removeNode(node: Node<any, any>): void {
+    public removeNode(node: Node): void {
         this.nodes.delete(node);
     }
 }

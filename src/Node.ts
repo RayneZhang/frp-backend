@@ -1,9 +1,15 @@
-import { Observable, ReplaySubject, ObservableInput, from, of, BehaviorSubject, combineLatest } from "rxjs";
+import { Observable, ReplaySubject, ObservableInput, from, of, BehaviorSubject, combineLatest, merge, isObservable } from "rxjs";
 import { pluck, map, mergeMap, switchMap } from "rxjs/operators";
 import { Edge } from "./Edge";
-import update from 'immutability-helper';
+import update, {extend} from 'immutability-helper';
+import { keys } from 'lodash';
+import _default from "immutability-helper";
 
 export const PROP_DEFAULT_NAME = '';
+
+interface NodeOutput {
+    [name: string]: any
+};
 
 interface InputInfo {
     name: string,
@@ -15,18 +21,26 @@ interface InputInfo {
 }
 interface OutputInfo {
     name: string,
-    type?: string
+    type?: string,
+    raw?: boolean
 }
-export abstract class Node<I, O> {
+export abstract class Node {
     private incomingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
     private outgoingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
     protected inputStream: Observable<any[]>;
     public constructor() {
     }
     protected establishInputStream(): void {
+        //InputInfoStream: A stream of InputInfo arrays
         const inputInfoStream = this.getInputInfoStream();
-        const inputAndInfo = combineLatest(inputInfoStream, this.incomingEdges);
-        this.inputStream = inputAndInfo.pipe(map(([inputInfo, incomingEdges]: [InputInfo[], Edge[]]) => {
+
+        // inputAndInfo: A stream with length-two items:
+        //    1) the first is an InputInfo array
+        //    2) an array of Edges
+        const inputAndInfo = combineLatest(this.incomingEdges, inputInfoStream);
+
+        // this.inputStream: a stream of (arrays of (streams of arg values) )
+        this.inputStream = inputAndInfo.pipe(map(([incomingEdges, inputInfo]: [Edge[], InputInfo[]]) => {
             const propStreams: Map<String, Observable<any>[]> = new Map();
             incomingEdges.forEach((edge: Edge) => {
                 const { prop } = edge.getTo();
@@ -48,7 +62,11 @@ export abstract class Node<I, O> {
                     if(ii.rest) {
                         args.push(...props);
                     } else if(props.length === 1) {
-                        args.push(props[0]);
+                        if(raw) {
+                            args.push(of(props[0]));
+                        } else {
+                            args.push(props[0]);
+                        }
                     } else if (props.length === 0) {
                         args.push(undefined);
                     } else {
@@ -95,7 +113,7 @@ export abstract class Node<I, O> {
         }
     }
 
-    public abstract getOutputStream(): Observable<O>;
+    public abstract getOutputStream(): Observable<NodeOutput>;
     public abstract getInputInfoStream(): Observable<InputInfo[]>;
     public abstract getOutputInfoStream(): Observable<OutputInfo[]>;
     public pluckOutput(prop: string=PROP_DEFAULT_NAME): Observable<any> {
@@ -104,11 +122,11 @@ export abstract class Node<I, O> {
     }
 }
 
-export class ConstantNode<T> extends Node<null, T> {
+export class ConstantNode extends Node {
     private stream: Observable<any>;
     private inputInfoStream: Observable<InputInfo[]>;
     private outputInfoStream: Observable<OutputInfo[]>;
-    public constructor(value: T, outputInfo: OutputInfo={name: PROP_DEFAULT_NAME}) {
+    public constructor(value: any, outputInfo: OutputInfo={name: PROP_DEFAULT_NAME}) {
         super();
         this.stream = of({
             [outputInfo.name]: value
@@ -118,7 +136,7 @@ export class ConstantNode<T> extends Node<null, T> {
         this.establishInputStream();
     }
 
-    public getOutputStream(): Observable<T> { return this.stream; };
+    public getOutputStream(): Observable<any> { return this.stream; };
     public getInputInfoStream(): Observable<InputInfo[]> {
         return this.inputInfoStream;
     };
@@ -128,8 +146,9 @@ export class ConstantNode<T> extends Node<null, T> {
 }
 
 
-abstract class StaticInfoNode<I, O>  extends Node<I, O> {
-    protected out: Observable<any>;
+abstract class StaticInfoNode extends Node {
+    protected out: Observable<NodeOutput>;
+    protected managedOut: Observable<NodeOutput>;
     private inputInfoStream: Observable<InputInfo[]>;
     private outputInfoStream: Observable<OutputInfo[]>;
 
@@ -138,11 +157,10 @@ abstract class StaticInfoNode<I, O>  extends Node<I, O> {
         this.inputInfoStream = new BehaviorSubject(inputs);
         this.outputInfoStream = new BehaviorSubject(output);
         this.establishInputStream();
-        // this.out =   this.inputStream.pipe();
     }
 
-    public getOutputStream(): Observable<O> { 
-        return this.out;
+    public getOutputStream(): Observable<NodeOutput> { 
+        return this.managedOut;
     }
     public getInputInfoStream(): Observable<InputInfo[]> {
         return this.inputInfoStream;
@@ -150,38 +168,59 @@ abstract class StaticInfoNode<I, O>  extends Node<I, O> {
     public getOutputInfoStream(): Observable<OutputInfo[]> {
         return this.outputInfoStream;
     }
-}
+    protected establishOutputStream(): void {
+        const outputInfoStream = this.getOutputInfoStream();
 
-export class OpNode<T, R> extends StaticInfoNode<T, R> {
-    public constructor(private func: (...args: any[]) => R, inputs: InputInfo[], output: OutputInfo) {
-        super(inputs, [output]);
-        this.establishInputStream();
-        //this.inputStream is a stream
-        //    of arrays of streams (values)
-        //   x: (1---2--3)  \
-        //                   >-- (+)
-        //   y: (5---6---)  /
+        const outputAndInfo = combineLatest(this.out, outputInfoStream)
 
-        // Stream( [ Stream(1,2,3), Stream(5,6)])
-        this.out = this.inputStream.pipe(
-            map((inp: Observable<any>[]) => {
-                return combineLatest(...inp); // produce a stream of the latest values for every arg ( stream of arrays ): Stream([3,6])
-            }),
-        ).pipe(
-            mergeMap((args: Observable<any[]>) => {
-                return args.pipe(map((args) => {
-                    return {
-                        [output.name]: this.func(...args)
-                    };
-                }));
-            })
-        );
+        this.managedOut = outputAndInfo.pipe(mergeMap(([outValue, outputInfo]: [NodeOutput, OutputInfo[]]) => {
+            const rawProps: Set<string> = new Set(outputInfo.filter((oi) => oi.raw).map((oi) => oi.name));
+            const individualDictStreams = keys(outValue).map((key: string) =>  {
+                const val = outValue[key];
+                if(rawProps.has(key) && isObservable(val))  {
+                    return val.pipe(map((v) => ({ [key]: v })));
+                } else {
+                    return of({ [key]: val });
+                }
+            });
+
+            return combineLatest(...individualDictStreams).pipe(map((val) => {
+                return Object.assign({}, ...val);
+            }));
+        }))
     }
 }
 
-export class GenNode extends StaticInfoNode<null, Observable<number>> {
+export class OpNode extends StaticInfoNode {
+    public constructor(private func: (...args: any[]) => any, inputs: InputInfo[], output: OutputInfo) {
+        super(inputs, [output]);
+        this.establishInputStream();
+        // this.inputStream: a stream of (arrays of (streams of arg values) )
+        //   x: (1---2--3) -\
+        //                   >-- (+)
+        //   y: (5---6---) -/
+
+        // this.inputStream: Stream( [ Stream(1,2,3), Stream(5,6) ] )
+        this.out = this.inputStream.pipe(
+            mergeMap((args: Observable<any>[]) => { // 
+                // args is an array of streams
+                return combineLatest(...args);
+            }),
+            map((args: any[]) => {
+                //args is an array of arg values
+                return {
+                    [output.name]: this.func(...args)
+                };
+            })
+        );
+        this.establishOutputStream();
+    }
+}
+
+
+export class GenNode extends StaticInfoNode {
     private intervalID: number = -1;
-    protected out: BehaviorSubject<{[key: string]: number}>;
+    protected out: BehaviorSubject<NodeOutput>;
     public constructor() {
         super([{
             name: 'delay'
@@ -205,6 +244,7 @@ export class GenNode extends StaticInfoNode<null, Observable<number>> {
                 this.set(delay);
             }
         });
+        this.establishOutputStream();
     }
     private clear(): void {
         if(this.intervalID >= 0) {

@@ -8,25 +8,32 @@ var five = scene.addConstant(5);
 var one = scene.addConstant(1);
 var add = scene.addOp('+');
 var delay = scene.addConstant(2000);
-var gen = scene.addOp('gen');
+var gen = scene.addOp('interval');
+var three = scene.addConstant(3);
+var take = scene.addOp('take');
+scene.addEdge(three, {
+    node: take,
+    prop: 'count'
+});
+scene.addEdge(gen, {
+    node: take,
+    prop: 'stream'
+});
 scene.addEdge(delay, {
     node: gen,
-    prop: 'delay'
+    prop: 'period'
 });
-gen.pluckOutput().subscribe(function (value) {
-    console.log("gen output is", value);
+// gen.pluckOutput().subscribe((value) => {
+//     console.log("gen output is", value);
+// });
+take.pluckOutput().subscribe(function (value) {
+    console.log("take output is", value);
 });
 scene.addEdge(five, add);
-scene.addEdge(one, add);
 scene.addEdge(gen, add);
+scene.addEdge(one, add);
 add.pluckOutput().subscribe(function (value) {
-    console.log("+ output is", value);
-});
-add.getInputInfoStream().forEach(function (ii) {
-    console.log(ii);
-});
-add.getOutputInfoStream().forEach(function (ii) {
-    console.log(ii);
+    console.log("add output is", value);
 });
 // const delay  = scene.addConstant(500);
 // const randNum = scene.addOp('gen');
@@ -37,16 +44,6 @@ add.getOutputInfoStream().forEach(function (ii) {
 // const a = scene.addConstant(1);
 // const b = scene.addConstant(2);
 // const c = scene.addOp('+');
-// const three = scene.addConstant(3);
-// const take = scene.addOp('take');
-// scene.addEdge(three, {
-//     node: take,
-//     prop: 'count'
-// });
-// scene.addEdge(randNum, {
-//     node: take,
-//     prop: 'stream'
-// });
 // const d = scene.addOp('+');
 // scene.addEdge(a, c);
 // scene.addEdge(take, c);
