@@ -92,6 +92,7 @@ export class Scene {
                         outputInfo.forEach((oi: OutputInfo) => {
                             const fromID = Edge.getPropIDString(node, oi.name, false);
                             if(this.edgeGraph.hasNode(fromID)) {
+                                console.log('HAS');
                                 const fromIDEdgeObj = this.edgeGraph.node(fromID);
                                 fromIDEdgeObj.x = x;
                                 fromIDEdgeObj.y = y;
@@ -100,6 +101,11 @@ export class Scene {
 
                             y += Scene.HEIGHT_PER_PROPERTY;
                         });
+                    });
+                    this.edgeGraph.nodes().forEach((id: string) => {
+                        const n = this.edgeGraph.node(id);
+                        console.log(id);
+                        console.log(n);
                     });
 
                     dagre.layout(this.edgeGraph);
@@ -117,6 +123,7 @@ export class Scene {
         );
 
         upd.subscribe((layout: Layout) => {
+            console.log(JSON.stringify(layout, undefined, 2));
             each(layout.nodes, (nodeLayout: NodeLayout, id: string) => {
                 const node = this.nodes.get(id);
                 node.setLayout(nodeLayout);
@@ -172,10 +179,10 @@ export class Scene {
         const fromPropID = edge.getFromIDString();
         const toPropID = edge.getToIDString();
         if(!this.edgeGraph.hasNode(fromPropID)) {
-            this.edgeGraph.setNode(fromPropID, {});
+            this.edgeGraph.setNode(fromPropID, {width:1, height: 1});
         }
         if(!this.edgeGraph.hasNode(toPropID)) {
-            this.edgeGraph.setNode(toPropID, {});
+            this.edgeGraph.setNode(toPropID, {width: 1, height: 1});
         }
         this.edgeGraph.setEdge(fromPropID, toPropID, { id: edge.getID() });
 

@@ -71,6 +71,7 @@ var Scene = /** @class */ (function () {
                 outputInfo.forEach(function (oi) {
                     var fromID = Edge_1.Edge.getPropIDString(node, oi.name, false);
                     if (_this.edgeGraph.hasNode(fromID)) {
+                        console.log('HAS');
                         var fromIDEdgeObj = _this.edgeGraph.node(fromID);
                         fromIDEdgeObj.x = x;
                         fromIDEdgeObj.y = y;
@@ -78,6 +79,11 @@ var Scene = /** @class */ (function () {
                     layout.nodes[nodeID].outputs[oi.name] = { x: x, y: y };
                     y += Scene.HEIGHT_PER_PROPERTY;
                 });
+            });
+            _this.edgeGraph.nodes().forEach(function (id) {
+                var n = _this.edgeGraph.node(id);
+                console.log(id);
+                console.log(n);
             });
             dagre.layout(_this.edgeGraph);
             _this.edgeGraph.edges().forEach(function (e) {
@@ -88,6 +94,7 @@ var Scene = /** @class */ (function () {
             return layout;
         }), operators_1.debounceTime(100));
         upd.subscribe(function (layout) {
+            console.log(JSON.stringify(layout, undefined, 2));
             lodash_1.each(layout.nodes, function (nodeLayout, id) {
                 var node = _this.nodes.get(id);
                 node.setLayout(nodeLayout);
@@ -136,10 +143,10 @@ var Scene = /** @class */ (function () {
         var fromPropID = edge.getFromIDString();
         var toPropID = edge.getToIDString();
         if (!this.edgeGraph.hasNode(fromPropID)) {
-            this.edgeGraph.setNode(fromPropID, {});
+            this.edgeGraph.setNode(fromPropID, { width: 1, height: 1 });
         }
         if (!this.edgeGraph.hasNode(toPropID)) {
-            this.edgeGraph.setNode(toPropID, {});
+            this.edgeGraph.setNode(toPropID, { width: 1, height: 1 });
         }
         this.edgeGraph.setEdge(fromPropID, toPropID, { id: edge.getID() });
         from.node.addOutgoingEdge(edge);
