@@ -12,19 +12,16 @@ var Scene = /** @class */ (function () {
     function Scene() {
         this.nodes = new Map();
         this.edges = new Map();
-        this.nodeGraph = new dagre.graphlib.Graph();
-        this.edgeGraph = new dagre.graphlib.Graph();
+        this.nodeGraph = new dagre.graphlib.Graph({ multigraph: true, compound: true });
         this.nodesStream = new rxjs_1.BehaviorSubject([]);
         this.edgesStream = new rxjs_1.BehaviorSubject([]);
         this.nodeGraph.setGraph({ rankdir: 'LR' });
         this.nodeGraph.setDefaultEdgeLabel(function () { return ({}); });
-        this.edgeGraph.setGraph({ rankdir: 'LR' });
-        this.edgeGraph.setDefaultEdgeLabel(function () { return ({}); });
         this.establishLayoutStream();
     }
     Scene.prototype.establishLayoutStream = function () {
         var _this = this;
-        var upd = this.nodesStream.pipe(operators_1.mergeMap(function (nodes) {
+        var upd = this.nodesStream.pipe(operators_1.switchMap(function (nodes) {
             return rxjs_1.combineLatest.apply(void 0, nodes.map(function (node) {
                 var ioInfoStream = rxjs_1.combineLatest(rxjs_1.of(node), node.getInputInfoStream(), node.getOutputInfoStream(), node.getIncomingEdgesStream(), node.getOutgoingEdgesStream());
                 return ioInfoStream;
@@ -37,64 +34,68 @@ var Scene = /** @class */ (function () {
             nodes.forEach(function (_a) {
                 var node = _a[0], inputInfo = _a[1], outputInfo = _a[2], incomingEdges = _a[3], outgoingEdges = _a[4];
                 var nodeID = node.getIDString();
-                var _b = Scene.computeNodeDimensions(inputInfo, outputInfo), width = _b.width, height = _b.height;
                 var nodeObj = _this.nodeGraph.node(nodeID);
-                nodeObj.width = width;
-                nodeObj.height = height;
-            });
-            dagre.layout(_this.nodeGraph);
-            _this.nodeGraph.nodes().forEach(function (nodeID) {
-                var node = _this.nodeGraph.node(nodeID);
-                layout.nodes[nodeID] = immutability_helper_1["default"](node, { inputs: { $set: {} }, outputs: { $set: {} } });
+                if (!_this.nodeGraph.hasNode(nodeID)) {
+                    _this.nodeGraph.setNode(nodeID, { id: nodeID });
+                }
+                layout.nodes[nodeID] = { x: -1, y: -1, width: -1, height: -1, inputs: {}, outputs: {} };
+                inputInfo.forEach(function (ii) {
+                    var name = ii.name;
+                    var propID = Edge_1.Edge.getPropIDString(node, name, true);
+                    layout.nodes[nodeID].inputs[name] = { name: name, x: -1, y: -1, width: -1, height: -1 };
+                    if (!_this.nodeGraph.hasNode(propID)) {
+                        _this.nodeGraph.setNode(propID, { id: propID, propName: name, parentID: nodeID, isInput: true });
+                        _this.nodeGraph.setParent(propID, nodeID);
+                    }
+                });
+                outputInfo.forEach(function (oi) {
+                    var name = oi.name;
+                    var propID = Edge_1.Edge.getPropIDString(node, name, false);
+                    layout.nodes[nodeID].outputs[name] = { name: oi.name, x: -1, y: -1, width: -1, height: -1 };
+                    if (!_this.nodeGraph.hasNode(propID)) {
+                        _this.nodeGraph.setNode(propID, { id: propID, propName: name, parentID: nodeID, isInput: false });
+                        _this.nodeGraph.setParent(propID, nodeID);
+                    }
+                });
             });
             nodes.forEach(function (_a) {
                 var node = _a[0], inputInfo = _a[1], outputInfo = _a[2], incomingEdges = _a[3], outgoingEdges = _a[4];
-                var nodeID = node.getIDString();
-                var nodeObj = _this.nodeGraph.node(nodeID);
-                var leftEdgeX = nodeObj.x;
-                var rightEdgeX = leftEdgeX + nodeObj.width;
-                var startY = nodeObj.y + Scene.MINIMUM_DIMENSIONS.height / 2;
-                var x = leftEdgeX;
-                var y = startY;
-                inputInfo.forEach(function (ii) {
-                    var toID = Edge_1.Edge.getPropIDString(node, ii.name, true);
-                    if (_this.edgeGraph.hasNode(toID)) {
-                        var toIDEdgeObj = _this.edgeGraph.node(toID);
-                        toIDEdgeObj.x = x;
-                        toIDEdgeObj.y = y;
+                outgoingEdges.forEach(function (edge) {
+                    layout.edges[edge.getID()] = [];
+                    var v = edge.getFromIDString();
+                    var w = edge.getToIDString();
+                    if (!_this.nodeGraph.hasEdge({ v: v, w: w })) {
+                        _this.nodeGraph.setEdge({ v: v, w: w }, { id: edge.getID() });
                     }
-                    layout.nodes[nodeID].inputs[ii.name] = { x: x, y: y };
-                    y += Scene.HEIGHT_PER_PROPERTY;
-                });
-                x = rightEdgeX;
-                y = startY;
-                outputInfo.forEach(function (oi) {
-                    var fromID = Edge_1.Edge.getPropIDString(node, oi.name, false);
-                    if (_this.edgeGraph.hasNode(fromID)) {
-                        console.log('HAS');
-                        var fromIDEdgeObj = _this.edgeGraph.node(fromID);
-                        fromIDEdgeObj.x = x;
-                        fromIDEdgeObj.y = y;
-                    }
-                    layout.nodes[nodeID].outputs[oi.name] = { x: x, y: y };
-                    y += Scene.HEIGHT_PER_PROPERTY;
                 });
             });
-            _this.edgeGraph.nodes().forEach(function (id) {
-                var n = _this.edgeGraph.node(id);
-                console.log(id);
-                console.log(n);
+            dagre.layout(_this.nodeGraph);
+            _this.nodeGraph.nodes().forEach(function (nodeID) {
+                var parent = _this.nodeGraph.parent(nodeID);
+                var node = _this.nodeGraph.node(nodeID);
+                var id = node.id;
+                if (parent === undefined) {
+                    layout.nodes[id].x = node.x;
+                    layout.nodes[id].y = node.y;
+                    layout.nodes[id].width = node.width;
+                    layout.nodes[id].height = node.height;
+                }
+                else {
+                    var parentID = node.parentID, isInput = node.isInput, propName = node.propName;
+                    var inoutname = isInput ? 'inputs' : 'outputs';
+                    layout.nodes[parentID][inoutname][propName].x = node.x;
+                    layout.nodes[parentID][inoutname][propName].y = node.y;
+                    layout.nodes[parentID][inoutname][propName].width = node.width;
+                    layout.nodes[parentID][inoutname][propName].height = node.height;
+                }
             });
-            dagre.layout(_this.edgeGraph);
-            _this.edgeGraph.edges().forEach(function (e) {
-                var edge = _this.edgeGraph.edge(e);
-                var id = edge.id, points = edge.points;
-                layout.edges[id] = points;
+            _this.nodeGraph.edges().forEach(function (edgeID) {
+                var edge = _this.nodeGraph.edge(edgeID);
+                layout.edges[edge.id] = edge.points;
             });
             return layout;
         }), operators_1.debounceTime(100));
         upd.subscribe(function (layout) {
-            console.log(JSON.stringify(layout, undefined, 2));
             lodash_1.each(layout.nodes, function (nodeLayout, id) {
                 var node = _this.nodes.get(id);
                 node.setLayout(nodeLayout);
@@ -124,8 +125,9 @@ var Scene = /** @class */ (function () {
     };
     Scene.prototype.addNode = function (node) {
         this.nodes.set(node.getIDString(), node);
-        var whInfo = { width: Scene.MINIMUM_DIMENSIONS.width, height: Scene.MINIMUM_DIMENSIONS.height };
-        this.nodeGraph.setNode(node.getIDString(), whInfo);
+        var nodeID = node.getIDString();
+        // const whInfo = { width: Scene.MINIMUM_DIMENSIONS.width, height: Scene.MINIMUM_DIMENSIONS.height };
+        // this.nodeGraph.setNode(nodeID, { id: nodeID });
         var nodesValue = this.nodesStream.getValue();
         var newNodes = immutability_helper_1["default"](nodesValue, { $push: [node] });
         this.nodesStream.next(newNodes);
@@ -139,16 +141,6 @@ var Scene = /** @class */ (function () {
         }
         var edge = new Edge_1.Edge(from, to);
         this.edges.set(edge.getID(), edge);
-        this.nodeGraph.setEdge(from.node.getIDString(), to.node.getIDString(), { id: edge.getID() });
-        var fromPropID = edge.getFromIDString();
-        var toPropID = edge.getToIDString();
-        if (!this.edgeGraph.hasNode(fromPropID)) {
-            this.edgeGraph.setNode(fromPropID, { width: 1, height: 1 });
-        }
-        if (!this.edgeGraph.hasNode(toPropID)) {
-            this.edgeGraph.setNode(toPropID, { width: 1, height: 1 });
-        }
-        this.edgeGraph.setEdge(fromPropID, toPropID, { id: edge.getID() });
         from.node.addOutgoingEdge(edge);
         to.node.addIncomingEdge(edge);
         var edgesValue = this.edgesStream.getValue();

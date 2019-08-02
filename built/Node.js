@@ -23,7 +23,7 @@ var Node = /** @class */ (function () {
     function Node() {
         this.incomingEdges = new rxjs_1.BehaviorSubject([]);
         this.outgoingEdges = new rxjs_1.BehaviorSubject([]);
-        this.layout = new rxjs_1.BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: [], outputs: [] });
+        this.layout = new rxjs_1.BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: {}, outputs: {} });
         this.id = Node.nodeCount++;
     }
     Node.prototype.getLayoutStream = function () {

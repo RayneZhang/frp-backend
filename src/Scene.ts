@@ -3,8 +3,8 @@ import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, OutputInfo, NodeLayou
 import  { ops }  from './Ops';
 import dagre = require('dagre');
 import { combineLatest, BehaviorSubject, Subject, of, merge } from 'rxjs';
-import { map, mergeMap, debounceTime } from 'rxjs/operators';
-import update from 'immutability-helper';
+import { map, mergeMap, debounceTime, concatMap, switchMap } from 'rxjs/operators';
+import update, { extend } from 'immutability-helper';
 import { each } from 'lodash';
 
 export interface Layout {
@@ -19,8 +19,7 @@ export interface Layout {
 export class Scene {
     private nodes: Map<string, Node> = new Map();
     private edges: Map<string, Edge> = new Map();
-    private nodeGraph: dagre.graphlib.Graph = new dagre.graphlib.Graph();
-    private edgeGraph: dagre.graphlib.Graph = new dagre.graphlib.Graph();
+    private nodeGraph: dagre.graphlib.Graph = new dagre.graphlib.Graph({ multigraph: true, compound: true });
     private static MINIMUM_DIMENSIONS = { width: 50, height: 50}
     private static HEIGHT_PER_PROPERTY: number = 40;
 
@@ -30,15 +29,13 @@ export class Scene {
     public constructor() {
         this.nodeGraph.setGraph({ rankdir: 'LR' });
         this.nodeGraph.setDefaultEdgeLabel(() => ({}));
-        this.edgeGraph.setGraph({ rankdir: 'LR' });
-        this.edgeGraph.setDefaultEdgeLabel(() => ({}));
 
         this.establishLayoutStream();
     }
 
     private establishLayoutStream(): void {
         const upd = this.nodesStream.pipe(
-            mergeMap((nodes: Node[]) => {
+            switchMap((nodes: Node[]) => {
                 return combineLatest(...nodes.map((node: Node) => {
                     const ioInfoStream = combineLatest(of(node), node.getInputInfoStream(), node.getOutputInfoStream(),
                             node.getIncomingEdgesStream(), node.getOutgoingEdgesStream());
@@ -46,84 +43,83 @@ export class Scene {
                 }));
             }),
             map((nodes: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]][]) => {
-                    const layout: Layout = {
-                        nodes: {},
-                        edges: {}
-                    };
+                const layout: Layout = {
+                    nodes: {},
+                    edges: {}
+                };
 
-                    nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
-                        const nodeID = node.getIDString();
-                        const { width, height } = Scene.computeNodeDimensions(inputInfo, outputInfo);
+                nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
+                    const nodeID = node.getIDString();
+                    const nodeObj = this.nodeGraph.node(nodeID);
 
-                        const nodeObj = this.nodeGraph.node(nodeID);
-                        nodeObj.width = width;
-                        nodeObj.height = height;
+                    if(!this.nodeGraph.hasNode(nodeID)) {
+                        this.nodeGraph.setNode(nodeID, { id: nodeID });
+                    }
+                    layout.nodes[nodeID] = {x: -1, y: -1, width: -1, height: -1, inputs: {}, outputs: {}};
+                    inputInfo.forEach((ii) => {
+                        const { name } = ii;
+                        const propID = Edge.getPropIDString(node, name, true)
+                        layout.nodes[nodeID].inputs[name] = {name: name, x: -1, y: -1, width: -1, height: -1};
+                        if(!this.nodeGraph.hasNode(propID)) {
+                            this.nodeGraph.setNode(propID, { id: propID, propName: name, parentID: nodeID, isInput: true });
+                            this.nodeGraph.setParent(propID,  nodeID);
+                        }
                     });
 
-                    dagre.layout(this.nodeGraph);
-
-                    this.nodeGraph.nodes().forEach((nodeID) => {
-                        const node = this.nodeGraph.node(nodeID);
-                        layout.nodes[nodeID] = update(node, { inputs: {$set: {}}, outputs: {$set: {}}}) as any;
+                    outputInfo.forEach((oi) => {
+                        const { name } = oi;
+                        const propID = Edge.getPropIDString(node, name, false)
+                        layout.nodes[nodeID].outputs[name] = {name: oi.name, x: -1, y: -1, width: -1, height: -1};
+                        if(!this.nodeGraph.hasNode(propID)) {
+                            this.nodeGraph.setNode(propID, { id: propID, propName: name, parentID: nodeID, isInput: false });
+                            this.nodeGraph.setParent(propID,  nodeID);
+                        }
                     });
+                });
 
-                    nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
-                        const nodeID = node.getIDString();
-                        const nodeObj = this.nodeGraph.node(nodeID);
-
-                        const leftEdgeX: number = nodeObj.x;
-                        const rightEdgeX: number = leftEdgeX + nodeObj.width;
-                        const startY: number = nodeObj.y + Scene.MINIMUM_DIMENSIONS.height / 2;
-                        let x: number = leftEdgeX;
-                        let y: number = startY;
-                        inputInfo.forEach((ii: InputInfo) => {
-                            const toID = Edge.getPropIDString(node, ii.name, true);
-                            if(this.edgeGraph.hasNode(toID)) {
-                                const toIDEdgeObj = this.edgeGraph.node(toID);
-                                toIDEdgeObj.x = x;
-                                toIDEdgeObj.y = y;
-                            }
-                            layout.nodes[nodeID].inputs[ii.name] = {x, y};
-
-                            y += Scene.HEIGHT_PER_PROPERTY;
-                        });
-                        x = rightEdgeX;
-                        y = startY;
-                        outputInfo.forEach((oi: OutputInfo) => {
-                            const fromID = Edge.getPropIDString(node, oi.name, false);
-                            if(this.edgeGraph.hasNode(fromID)) {
-                                console.log('HAS');
-                                const fromIDEdgeObj = this.edgeGraph.node(fromID);
-                                fromIDEdgeObj.x = x;
-                                fromIDEdgeObj.y = y;
-                            }
-                            layout.nodes[nodeID].outputs[oi.name] = {x, y};
-
-                            y += Scene.HEIGHT_PER_PROPERTY;
-                        });
+                nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
+                    outgoingEdges.forEach((edge: Edge) => {
+                        layout.edges[edge.getID()] = [];
+                        const v = edge.getFromIDString();
+                        const w = edge.getToIDString();
+                        if(!this.nodeGraph.hasEdge({ v, w })) {
+                            this.nodeGraph.setEdge({v, w}, { id: edge.getID() });
+                        }
                     });
-                    this.edgeGraph.nodes().forEach((id: string) => {
-                        const n = this.edgeGraph.node(id);
-                        console.log(id);
-                        console.log(n);
-                    });
+                });
 
-                    dagre.layout(this.edgeGraph);
-                    this.edgeGraph.edges().forEach((e: dagre.Edge) => {
-                        const edge = this.edgeGraph.edge(e);
-                        const { id, points } = edge;
+                dagre.layout(this.nodeGraph);
 
-                        layout.edges[id] = points;
-                    });
+                this.nodeGraph.nodes().forEach((nodeID) => {
+                    const parent = this.nodeGraph.parent(nodeID);
+                    const node = this.nodeGraph.node(nodeID);
+                    const { id } = node;
+                    if(parent === undefined) {
+                        layout.nodes[id].x = node.x;
+                        layout.nodes[id].y = node.y;
+                        layout.nodes[id].width = node.width;
+                        layout.nodes[id].height = node.height;
+                    } else {
+                        const { parentID, isInput, propName } = node;
+                        const inoutname = isInput ? 'inputs' : 'outputs';
+                        layout.nodes[parentID][inoutname][propName].x = node.x;
+                        layout.nodes[parentID][inoutname][propName].y = node.y;
+                        layout.nodes[parentID][inoutname][propName].width = node.width;
+                        layout.nodes[parentID][inoutname][propName].height = node.height;
+                    }
+                });
+                this.nodeGraph.edges().forEach((edgeID) => {
+                    const edge = this.nodeGraph.edge(edgeID);
 
-                    return layout;
-                }
-            ),
+                    layout.edges[edge.id] = edge.points;
+                });
+
+                return layout;
+            }),
             debounceTime(100)
         );
 
         upd.subscribe((layout: Layout) => {
-            console.log(JSON.stringify(layout, undefined, 2));
             each(layout.nodes, (nodeLayout: NodeLayout, id: string) => {
                 const node = this.nodes.get(id);
                 node.setLayout(nodeLayout);
@@ -157,8 +153,9 @@ export class Scene {
 
     private addNode(node: Node): void {
         this.nodes.set(node.getIDString(), node);
-        const whInfo = { width: Scene.MINIMUM_DIMENSIONS.width, height: Scene.MINIMUM_DIMENSIONS.height };
-        this.nodeGraph.setNode(node.getIDString(), whInfo);
+        const nodeID = node.getIDString();
+        // const whInfo = { width: Scene.MINIMUM_DIMENSIONS.width, height: Scene.MINIMUM_DIMENSIONS.height };
+        // this.nodeGraph.setNode(nodeID, { id: nodeID });
 
         const nodesValue = this.nodesStream.getValue();
         const newNodes = update(nodesValue, {$push: [node]});
@@ -173,18 +170,6 @@ export class Scene {
         const edge = new Edge(from, to);
 
         this.edges.set(edge.getID(), edge);
-
-        this.nodeGraph.setEdge(from.node.getIDString(), to.node.getIDString(), { id: edge.getID() });
-
-        const fromPropID = edge.getFromIDString();
-        const toPropID = edge.getToIDString();
-        if(!this.edgeGraph.hasNode(fromPropID)) {
-            this.edgeGraph.setNode(fromPropID, {width:1, height: 1});
-        }
-        if(!this.edgeGraph.hasNode(toPropID)) {
-            this.edgeGraph.setNode(toPropID, {width: 1, height: 1});
-        }
-        this.edgeGraph.setEdge(fromPropID, toPropID, { id: edge.getID() });
 
         from.node.addOutgoingEdge(edge);
         to.node.addIncomingEdge(edge);

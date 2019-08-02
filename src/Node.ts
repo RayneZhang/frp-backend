@@ -32,15 +32,23 @@ export interface NodeLayout {
     x: number,
     y: number,
     inputs: {
-        name: string,
-        x: number,
-        y: number
-    }[],
+        [name: string]: {
+            name: string,
+            x: number,
+            y: number,
+            width: number,
+            height: number
+        }
+    },
     outputs: {
-        name: string,
-        x: number,
-        y: number
-    }[],
+        [name: string]: {
+            name: string,
+            x: number,
+            y: number,
+            width: number,
+            height: number
+        }
+    },
 }
 
 export abstract class Node {
@@ -49,7 +57,7 @@ export abstract class Node {
     private id: number;
     private incomingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
     private outgoingEdges: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
-    private layout: Subject<NodeLayout> = new BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: [], outputs: [] });
+    private layout: Subject<NodeLayout> = new BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: {}, outputs: {} });
     protected inputStream: Observable<any[]>;
 
     public constructor() {
