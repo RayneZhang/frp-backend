@@ -2,11 +2,18 @@
 exports.__esModule = true;
 var Scene_1 = require("./Scene");
 var scene = new Scene_1.Scene();
-var one = scene.addConstant(1);
-var two = scene.addConstant(2);
+var delay = scene.addConstant(2000);
+var gen = scene.addOp('gen');
 var three = scene.addConstant(3);
 var add = scene.addOp('+');
-scene.addEdge(one, add);
+scene.addEdge(gen, add);
+scene.addEdge(three, add);
+scene.addEdge(delay, {
+    node: gen,
+    prop: 'delay'
+});
+var two = scene.addConstant(2);
+scene.addEdge(two, add);
 // const five = scene.addConstant(5);
 // const one = scene.addConstant(1);
 // const add = scene.addOp('+');
@@ -32,7 +39,10 @@ scene.addEdge(one, add);
 // scene.addEdge(five, add);
 // scene.addEdge(gen, add);
 // scene.addEdge(one, add);
-// add.pluckOutput().subscribe((value) => {
-//     console.log("add output is", value);
-// });
+add.pluckOutput().subscribe(function (value) {
+    console.log("add output is", value);
+});
+add.getLayoutStream().subscribe(function (layout) {
+    console.log("add layout is", layout);
+});
 //# sourceMappingURL=index.js.map
