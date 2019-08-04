@@ -1,7 +1,7 @@
 # FRP Backend
 This library is a backend for the FlowMatic system.
 
-Example client-side use:
+Example client-side use (see `client_sample/index.html`):
 ```
 const scene = new Scene(); // create a new scene object
 const drawing =  new SceneDisplay('drawing', scene); // Create a drawing output (looks for a <div> with id='drawing')
