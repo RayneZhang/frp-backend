@@ -1,201 +1,94 @@
-import { Edge, Loc, EdgeLayout } from './Edge';
-import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, OutputInfo, NodeLayout } from './Node';
+import { Edge, Loc } from './Edge';
+import { Node, ConstantNode, PROP_DEFAULT_NAME } from './Node';
 import  { ops }  from './Ops';
-import dagre = require('dagre');
-import { combineLatest, BehaviorSubject, Subject, of, merge } from 'rxjs';
-import { map, mergeMap, debounceTime } from 'rxjs/operators';
+import { combineLatest, BehaviorSubject, Observable } from 'rxjs';
 import update from 'immutability-helper';
-import { each } from 'lodash';
+import { getLayoutStream, Layout } from './SceneLayout';
 
-export interface Layout {
-    nodes: {
-        [id: string]: NodeLayout
-    },
-    edges: {
-        [id: string]: EdgeLayout
-    }
-}
-
+/**
+ * A scene represents a complete program
+ */
 export class Scene {
-    private nodes: Map<string, Node> = new Map();
-    private edges: Map<string, Edge> = new Map();
-    private nodeGraph: dagre.graphlib.Graph = new dagre.graphlib.Graph();
-    private edgeGraph: dagre.graphlib.Graph = new dagre.graphlib.Graph();
-    private static MINIMUM_DIMENSIONS = { width: 50, height: 50}
-    private static HEIGHT_PER_PROPERTY: number = 40;
+    private nodesStream: BehaviorSubject<Node[]> = new BehaviorSubject([]); // A stream of lists of nodes
+    private edgesStream: BehaviorSubject<Edge[]> = new BehaviorSubject([]); // A stream of lists of edges
 
-    private nodesStream: BehaviorSubject<Node[]> = new BehaviorSubject([]);
-    private edgesStream: BehaviorSubject<Edge[]> = new BehaviorSubject([]);
+    private layoutStream: Observable<Layout> = getLayoutStream(this.getNodesStream(), this.getEdgesStream()); // A stream with the layout (where to position objects)
 
     public constructor() {
-        this.nodeGraph.setGraph({ rankdir: 'LR' });
-        this.nodeGraph.setDefaultEdgeLabel(() => ({}));
-        this.edgeGraph.setGraph({ rankdir: 'LR' });
-        this.edgeGraph.setDefaultEdgeLabel(() => ({}));
-
-        this.establishLayoutStream();
-    }
-
-    private establishLayoutStream(): void {
-        const upd = this.nodesStream.pipe(
-            mergeMap((nodes: Node[]) => {
-                return combineLatest(...nodes.map((node: Node) => {
-                    const ioInfoStream = combineLatest(of(node), node.getInputInfoStream(), node.getOutputInfoStream(),
-                            node.getIncomingEdgesStream(), node.getOutgoingEdgesStream());
-                    return ioInfoStream;
-                }));
-            }),
-            map((nodes: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]][]) => {
-                    const layout: Layout = {
-                        nodes: {},
-                        edges: {}
-                    };
-
-                    nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
-                        const nodeID = node.getIDString();
-                        const { width, height } = Scene.computeNodeDimensions(inputInfo, outputInfo);
-
-                        const nodeObj = this.nodeGraph.node(nodeID);
-                        nodeObj.width = width;
-                        nodeObj.height = height;
-                    });
-
-                    dagre.layout(this.nodeGraph);
-
-                    this.nodeGraph.nodes().forEach((nodeID) => {
-                        const node = this.nodeGraph.node(nodeID);
-                        layout.nodes[nodeID] = update(node, { inputs: {$set: {}}, outputs: {$set: {}}}) as any;
-                    });
-
-                    nodes.forEach(([node, inputInfo, outputInfo, incomingEdges, outgoingEdges]: [Node, InputInfo[], OutputInfo[], Edge[], Edge[]]) => {
-                        const nodeID = node.getIDString();
-                        const nodeObj = this.nodeGraph.node(nodeID);
-
-                        const leftEdgeX: number = nodeObj.x;
-                        const rightEdgeX: number = leftEdgeX + nodeObj.width;
-                        const startY: number = nodeObj.y + Scene.MINIMUM_DIMENSIONS.height / 2;
-                        let x: number = leftEdgeX;
-                        let y: number = startY;
-                        inputInfo.forEach((ii: InputInfo) => {
-                            const toID = Edge.getPropIDString(node, ii.name, true);
-                            if(this.edgeGraph.hasNode(toID)) {
-                                const toIDEdgeObj = this.edgeGraph.node(toID);
-                                toIDEdgeObj.x = x;
-                                toIDEdgeObj.y = y;
-                            }
-                            layout.nodes[nodeID].inputs[ii.name] = {x, y};
-
-                            y += Scene.HEIGHT_PER_PROPERTY;
-                        });
-                        x = rightEdgeX;
-                        y = startY;
-                        outputInfo.forEach((oi: OutputInfo) => {
-                            const fromID = Edge.getPropIDString(node, oi.name, false);
-                            if(this.edgeGraph.hasNode(fromID)) {
-                                console.log('HAS');
-                                const fromIDEdgeObj = this.edgeGraph.node(fromID);
-                                fromIDEdgeObj.x = x;
-                                fromIDEdgeObj.y = y;
-                            }
-                            layout.nodes[nodeID].outputs[oi.name] = {x, y};
-
-                            y += Scene.HEIGHT_PER_PROPERTY;
-                        });
-                    });
-                    this.edgeGraph.nodes().forEach((id: string) => {
-                        const n = this.edgeGraph.node(id);
-                        console.log(id);
-                        console.log(n);
-                    });
-
-                    dagre.layout(this.edgeGraph);
-                    this.edgeGraph.edges().forEach((e: dagre.Edge) => {
-                        const edge = this.edgeGraph.edge(e);
-                        const { id, points } = edge;
-
-                        layout.edges[id] = points;
-                    });
-
-                    return layout;
-                }
-            ),
-            debounceTime(100)
+        // A subscription to update individual nodes/edges' layouts from a single layout object
+        combineLatest(this.layoutStream, this.getNodesStream(), this.getEdgesStream()).subscribe(
+            ([layout, nodes, edges]: [Layout, Node[], Edge[]]) => {
+                // Go through all of the nodes and update their layouts
+                nodes.forEach((node) => {
+                    const id = node.getID();
+                    if(layout.nodes[id]) {
+                        node._setLayout(layout.nodes[id]);
+                    }
+                });
+                // Go through all the edges and update their layouts
+                edges.forEach((edge) => {
+                    const id = edge.getID();
+                    if(layout.edges[id]) {
+                        edge.setLayout(layout.edges[id]);
+                    }
+                });
+            }
         );
-
-        upd.subscribe((layout: Layout) => {
-            console.log(JSON.stringify(layout, undefined, 2));
-            each(layout.nodes, (nodeLayout: NodeLayout, id: string) => {
-                const node = this.nodes.get(id);
-                node.setLayout(nodeLayout);
-            });
-            each(layout.edges, (edgeLayout: EdgeLayout, id: string) => {
-                const edge = this.edges.get(id);
-                edge.setLayout(edgeLayout);
-            });
-        });
     }
 
-    private static computeNodeDimensions(inputInfo: InputInfo[], outputInfo: OutputInfo[]): {width: number, height: number} {
-        return {
-            width: Scene.MINIMUM_DIMENSIONS.width,
-            height: Scene.MINIMUM_DIMENSIONS.height + Scene.HEIGHT_PER_PROPERTY * Math.max(inputInfo.length, outputInfo.length),
-        };
-    }
-
+    /**
+     * Add a constant value to the scene
+     * @param value The constant value to add
+     */
     public addConstant(value: any): Node {
         const node = new ConstantNode(value);
-        this.addNode(node);
-        return node;
+        return this.addNode(node);
     }
 
+    /**
+     * Add an operation to the scene
+     * @param name The name of the op (a key in Op.ts)
+     */
     public addOp(name: string): Node {
         const opFn = ops[name];
         const op = opFn();
-        this.addNode(op);
-        return op;
+        return this.addNode(op);
     }
 
-    private addNode(node: Node): void {
-        this.nodes.set(node.getIDString(), node);
-        const whInfo = { width: Scene.MINIMUM_DIMENSIONS.width, height: Scene.MINIMUM_DIMENSIONS.height };
-        this.nodeGraph.setNode(node.getIDString(), whInfo);
-
+    // Add any node to the scene
+    private addNode(node: Node): Node {
         const nodesValue = this.nodesStream.getValue();
-        const newNodes = update(nodesValue, {$push: [node]});
-        this.nodesStream.next(newNodes);
+        const newNodes = update(nodesValue, {$push: [node]}); // Add the node to the list of nodes (without mutating)
+        this.nodesStream.next(newNodes); // Update my list of ndoes
+        return node;
     }
 
-
+    /**
+     * Add a new edge between node properties
+     * 
+     * @param from {node: Node, prop: string}: Where this edge leaves from
+     * @param to {node: Node, prop: string}: Where this edge goes to
+     */
     public addEdge(from: Loc|Node, to: Loc|Node): Edge {
+        // If only the Node is supplied, we use the default prop name
         if (from instanceof Node) { from = { node: from, prop: PROP_DEFAULT_NAME }; }
         if   (to instanceof Node) { to   = { node: to, prop: PROP_DEFAULT_NAME }; }
 
         const edge = new Edge(from, to);
-
-        this.edges.set(edge.getID(), edge);
-
-        this.nodeGraph.setEdge(from.node.getIDString(), to.node.getIDString(), { id: edge.getID() });
-
-        const fromPropID = edge.getFromIDString();
-        const toPropID = edge.getToIDString();
-        if(!this.edgeGraph.hasNode(fromPropID)) {
-            this.edgeGraph.setNode(fromPropID, {width:1, height: 1});
-        }
-        if(!this.edgeGraph.hasNode(toPropID)) {
-            this.edgeGraph.setNode(toPropID, {width: 1, height: 1});
-        }
-        this.edgeGraph.setEdge(fromPropID, toPropID, { id: edge.getID() });
-
         from.node.addOutgoingEdge(edge);
         to.node.addIncomingEdge(edge);
 
         const edgesValue = this.edgesStream.getValue();
-        const newEdges = update(edgesValue, {$push: [edge]});
+        const newEdges = update(edgesValue, {$push: [edge]}); // Add the edge to the list (with no mutations)
         this.edgesStream.next(newEdges);
 
         return edge;
     }
 
+    /**
+     *  Remove an edge from the scene
+     * @param edge The edge to remove
+     */
     public removeEdge(edge: Edge): void {
         const from = edge.getFrom();
         const to = edge.getTo();
@@ -207,16 +100,48 @@ export class Scene {
         if(index >= 0) {
             const newEdges = update(edgesValue, {$splice: [[index, 1]]});
             this.edgesStream.next(newEdges);
+
+            edge.remove();
         }
     }
 
+    /**
+     * Remove a node from the scene
+     * @param node The Node to remove
+     */
     public removeNode(node: Node): void {
-        this.nodeGraph.removeNode(node.getIDString());
         const nodesValue = this.nodesStream.getValue();
         const index = nodesValue.indexOf(node);
         if(index >= 0) {
+            //We need to remove any edges that involve this node, so we'll see which ones we need to remove...
+            const edgesValue = this.edgesStream.getValue();
+            const toRemoveEdges = edgesValue.filter((e: Edge) => ((e.getFrom().node === node) || (e.getTo().node === node)));
+
+            if(toRemoveEdges.length > 0) { // if we have any edges to remove...
+                toRemoveEdges.forEach((edge) => {
+                    const from = edge.getFrom();
+                    const to = edge.getTo();
+                    from.node.removeOutgoingEdge(edge);
+                    to.node.removeIncomingEdge(edge);
+
+                    edge.remove()
+                });
+                this.edgesStream.next(edgesValue.filter((e) => toRemoveEdges.indexOf(e) < 0));
+            }
+
+            // Finally, remove the node
             const newNodes = update(nodesValue, {$splice: [[index, 1]]});
             this.nodesStream.next(newNodes);
+            node.remove();
         }
     }
+
+    /**
+     * Get a stream whose values are the current nodes in the scene
+     */
+    public getNodesStream(): Observable<Node[]> { return this.nodesStream; }
+    /**
+     * Get a stream whose values are the current edges in the scene
+     */
+    public getEdgesStream(): Observable<Edge[]> { return this.edgesStream; }
 }

@@ -10,7 +10,7 @@ var Edge = /** @class */ (function () {
     function Edge(f, t) {
         this.f = f;
         this.t = t;
-        this.layout = new rxjs_1.BehaviorSubject([]);
+        this.layout = new rxjs_1.BehaviorSubject([]); // Tracks where this edge should be displayed
         // A stream that tracks which location this edge originates from
         // fromStream is a stream where every item is a Loc instance. every time
         // this edge's `from` property is changed, a new Loc gets pushed onto the end
@@ -33,6 +33,11 @@ var Edge = /** @class */ (function () {
     Edge.prototype.getLayoutStream = function () {
         return this.layout;
     };
+    /**
+     * Modify the layout  of this edge
+     *
+     * @param l An array of points that this edge should cross
+     */
     Edge.prototype.setLayout = function (l) {
         this.layout.next(l);
     };
@@ -65,19 +70,11 @@ var Edge = /** @class */ (function () {
     Edge.prototype.getStream = function () {
         return this.valueStream;
     };
-    Edge.prototype.getFromIDString = function () {
-        var _a = this.getFrom(), node = _a.node, prop = _a.prop;
-        return Edge.getPropIDString(node, prop, false);
-    };
-    Edge.prototype.getToIDString = function () {
-        var _a = this.getTo(), node = _a.node, prop = _a.prop;
-        return Edge.getPropIDString(node, prop, true);
-    };
+    /**
+     * Get this  edge's unique ID
+     */
     Edge.prototype.getID = function () { return "" + this.id; };
-    Edge.getPropIDString = function (node, prop, incoming) {
-        return node.getIDString() + "." + (incoming ? 'in' : 'out') + "." + prop;
-    };
-    Edge.edgeCount = 1;
+    Edge.edgeCount = 1; // Used  to form unique  edge  IDs
     return Edge;
 }());
 exports.Edge = Edge;

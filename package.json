@@ -2,9 +2,11 @@
   "name": "frp-backend",
   "version": "0.0.1",
   "description": "Functional Reactive Programming Backend",
-  "main": "index.js",
+  "main": "built/index.js",
   "scripts": {
     "build": "npx tsc",
+    "webpack": "npx webpack",
+    "watch": "npx webpack --watch",
     "run": "node built/index.js",
     "test": "npm test"
   },
@@ -21,11 +23,14 @@
   "dependencies": {
     "dagre": "^0.8.4",
     "immutability-helper": "^3.0.1",
-    "lodash": "^4.17.15",
     "rxjs": "^6.5.2",
+    "svg.js": "^2.7.1",
     "typescript": "^3.5.3"
   },
   "devDependencies": {
-    "@types/dagre": "^0.7.42"
+    "@types/dagre": "^0.7.42",
+    "ts-loader": "^6.0.4",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6"
   }
 }

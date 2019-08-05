@@ -16,14 +16,13 @@ exports.__esModule = true;
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var immutability_helper_1 = require("immutability-helper");
-var lodash_1 = require("lodash");
 exports.PROP_DEFAULT_NAME = '';
 ;
 var Node = /** @class */ (function () {
     function Node() {
         this.incomingEdges = new rxjs_1.BehaviorSubject([]);
         this.outgoingEdges = new rxjs_1.BehaviorSubject([]);
-        this.layout = new rxjs_1.BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: [], outputs: [] });
+        this.layout = new rxjs_1.BehaviorSubject({ width: 0, height: 0, x: 0, y: 0, inputs: {}, outputs: {} });
         this.id = Node.nodeCount++;
     }
     Node.prototype.getLayoutStream = function () {
@@ -119,8 +118,7 @@ var Node = /** @class */ (function () {
         var outputStream = this.getOutputStream();
         return outputStream.pipe(operators_1.pluck(prop));
     };
-    Node.prototype.getID = function () { return this.id; };
-    Node.prototype.getIDString = function () { return "" + this.getID(); };
+    Node.prototype.getID = function () { return "" + this.id; };
     Node.nodeCount = 1;
     return Node;
 }());
@@ -176,7 +174,7 @@ var StaticInfoNode = /** @class */ (function (_super) {
         this.managedOut = outputAndInfo.pipe(operators_1.mergeMap(function (_a) {
             var outValue = _a[0], outputInfo = _a[1];
             var rawProps = new Set(outputInfo.filter(function (oi) { return oi.raw; }).map(function (oi) { return oi.name; }));
-            var individualDictStreams = lodash_1.keys(outValue).map(function (key) {
+            var individualDictStreams = Object.keys(outValue).map(function (key) {
                 var _a;
                 var val = outValue[key];
                 if (rawProps.has(key) && rxjs_1.isObservable(val)) {

@@ -2,22 +2,26 @@ import { Node } from './Node';
 import { Observable, ReplaySubject, Subject, BehaviorSubject } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
+// Where an edge points to or from (the node and the specific property)
 export interface Loc {
     node: Node,
     prop: string,
 }
 
-export type EdgeLayout = {x: number, y: number}[];
+export type EdgeLayout = {
+    // points for the path of the edge to follow; see: https://github.com/dagrejs/dagre/wiki
+    points: {x: number, y: number}[];
+}
 
 /**
  * An Edge instance represents directed data flow between two node properties.
  * Every Edge instance keeps track of its current value (through valueStream)
  */
 export class Edge {
-    private static edgeCount: number = 1;
-    private layout: Subject<EdgeLayout> = new BehaviorSubject([]);
+    private static edgeCount: number = 1; // Used  to form unique  edge  IDs
+    private layout: Subject<EdgeLayout> = new BehaviorSubject({ points: [] }); // Tracks where this edge should be displayed
 
-    private id: number;
+    private id: number; // A unique  id for every edge
 
     // A stream that tracks which location this edge originates from
     // fromStream is a stream where every item is a Loc instance. every time
@@ -42,10 +46,26 @@ export class Edge {
         this.id = Edge.edgeCount++;
     }
 
+    /**
+     * Remove this edge from the scene (cleans up streams)
+     */
+    public remove(): void {
+        this.fromStream.complete();
+        this.layout.complete();
+    }
+
+    /**
+     * Get a stream that updates the layout of this edge
+     */
     public getLayoutStream(): Observable<EdgeLayout> {
         return this.layout;
     }
 
+    /**
+     * Modify the layout  of this edge
+     * 
+     * @param l An array of points that this edge should cross
+     */
     public setLayout(l: EdgeLayout): void {
         this.layout.next(l);
     }
@@ -84,19 +104,8 @@ export class Edge {
         return this.valueStream;
     }
 
-    public getFromIDString(): string {
-        const { node, prop } = this.getFrom();
-        return Edge.getPropIDString(node, prop, false);
-    }
-
-    public getToIDString(): string {
-        const { node, prop } = this.getTo();
-        return Edge.getPropIDString(node, prop, true);
-    }
-
-    public getID(): string { return `${this.id}`; }
-
-    public static getPropIDString(node: Node, prop: string, incoming: boolean): string {
-        return `${node.getIDString()}.${incoming ? 'in' : 'out' }.${prop}`;
-    }
+    /**
+     * Get this  edge's unique ID
+     */
+    public getID(): string { return `edge-${this.id}`; }
 }
