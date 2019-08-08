@@ -3,7 +3,6 @@ exports.__esModule = true;
 var Edge_1 = require("./Edge");
 var Node_1 = require("./Node");
 var Ops_1 = require("./Ops");
-var Objs_1 = require("./Objs");
 var rxjs_1 = require("rxjs");
 var immutability_helper_1 = require("immutability-helper");
 var SceneLayout_1 = require("./SceneLayout");
@@ -53,11 +52,11 @@ var Scene = /** @class */ (function () {
     };
     /**
      * Add an object to the scene
-     * @param name The name of the object
+     * @param name The human-readable label of the object
+     * @param inputs The input infos with default values
      */
-    Scene.prototype.addObj = function (name) {
-        var objFn = Objs_1.objs[name];
-        var obj = objFn();
+    Scene.prototype.addObj = function (name, inputs) {
+        var obj = new Node_1.ObjNode(name, inputs);
         return this.addNode(obj);
     };
     // Add any node to the scene

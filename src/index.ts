@@ -1,3 +1,4 @@
+//export { Scene } from './Scene';
 import { Scene } from './Scene';
 
 const scene = new Scene();
@@ -12,7 +13,9 @@ p.pluckOutput().subscribe(function (value) {
     console.log("add output is", value);
 });
 
-const o = scene.addObj('cube');
-o.pluckOutput('color').subscribe(function (value) {
-    console.log("obj output is", value);
+const cube = scene.addObj('cube', [{name: 'color', default: 'red'}]);
+const sphere = scene.addObj('sphere', [{name: 'color', default: 'blue'}]);
+sphere.pluckOutput('color').subscribe(function (value) {
+    console.log("sphere output is", value);
 })
+scene.addEdge({node: cube, prop: 'color'}, {node: sphere, prop: 'color'});
