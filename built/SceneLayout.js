@@ -1,13 +1,15 @@
 "use strict";
 exports.__esModule = true;
 var rxjs_1 = require("rxjs");
+var Node_1 = require("./Node");
 var dagre = require("dagre");
 var operators_1 = require("rxjs/operators");
 var subnodeWidth = 50;
 var subnodeHeight = 50;
-function getPropID(parentID, childName, isInput) {
-    return parentID + "." + (isInput ? 'in' : 'out') + "." + childName;
+function getPropID(parentID, childName, io) {
+    return parentID + "." + (io === Node_1.IO.Input ? 'in' : 'out') + "." + childName;
 }
+exports.getPropID = getPropID;
 function getLayoutStream(nodesStream, edgesStream) {
     var nodeGraph = new dagre.graphlib.Graph({ multigraph: true, compound: true });
     nodeGraph.setGraph({ rankdir: 'LR' });
@@ -27,7 +29,7 @@ function getLayoutStream(nodesStream, edgesStream) {
             if (!nodeGraph.hasNode(nodeID)) {
                 nodeGraph.setNode(nodeID, { id: nodeID });
             }
-            var inputs_outputs = inputs.map(function (i) { return ({ io: i, isInput: true }); }).concat(outputs.map(function (o) { return ({ io: o, isInput: false }); }));
+            var inputs_outputs = inputs.map(function (i) { return ({ io: i, isInput: Node_1.IO.Input }); }).concat(outputs.map(function (o) { return ({ io: o, isInput: Node_1.IO.Output }); }));
             inputs_outputs.forEach(function (_a) {
                 var io = _a.io, isInput = _a.isInput;
                 var propID = getPropID(nodeID, io.name, isInput);
@@ -52,8 +54,8 @@ function getLayoutStream(nodesStream, edgesStream) {
             if (graphEdges.findIndex(function (ge) { return ge.name === eid; }) < 0) {
                 var from = e.getFrom();
                 var to = e.getTo();
-                var v = getPropID(from.node.getID(), from.prop, false);
-                var w = getPropID(to.node.getID(), to.prop, true);
+                var v = getPropID(from.node.getID(), from.prop, Node_1.IO.Output);
+                var w = getPropID(to.node.getID(), to.prop, Node_1.IO.Input);
                 nodeGraph.setEdge({ v: v, w: w, name: eid });
             }
         });
@@ -64,12 +66,13 @@ function getLayoutStream(nodesStream, edgesStream) {
             }
         });
     });
-    var layoutStream = nodesStream.pipe(operators_1.switchMap(function (nodes) {
+    var layoutStream = rxjs_1.combineLatest(nodesStream, edgesStream).pipe(operators_1.switchMap(function (_a) {
+        var nodes = _a[0];
         return rxjs_1.combineLatest.apply(void 0, nodes.map(function (node) {
             var ioInfoStream = rxjs_1.combineLatest(rxjs_1.of(node), node.getInputInfoStream(), node.getOutputInfoStream());
             return ioInfoStream;
         }));
-    }), operators_1.map(function (nodes) {
+    }), operators_1.map(function () {
         var layout = {
             nodes: {},
             edges: {}
@@ -77,9 +80,9 @@ function getLayoutStream(nodesStream, edgesStream) {
         dagre.layout(nodeGraph);
         nodeGraph.nodes().forEach(function (nodeID) {
             var parent = nodeGraph.parent(nodeID);
-            var node = nodeGraph.node(nodeID);
-            var id = node.id;
             if (parent === undefined) {
+                var node = nodeGraph.node(nodeID);
+                var id = node.id;
                 layout.nodes[id] = {
                     x: node.x,
                     y: node.y,
@@ -92,11 +95,10 @@ function getLayoutStream(nodesStream, edgesStream) {
         });
         nodeGraph.nodes().forEach(function (nodeID) {
             var parent = nodeGraph.parent(nodeID);
-            var node = nodeGraph.node(nodeID);
-            var id = node.id;
             if (parent !== undefined) {
+                var node = nodeGraph.node(nodeID);
                 var parentID = node.parentID, isInput = node.isInput, propName = node.propName;
-                var inoutname = isInput ? 'inputs' : 'outputs';
+                var inoutname = isInput === Node_1.IO.Input ? 'inputs' : 'outputs';
                 layout.nodes[parentID][inoutname][propName] = {
                     x: node.x,
                     y: node.y,
@@ -107,10 +109,10 @@ function getLayoutStream(nodesStream, edgesStream) {
         });
         nodeGraph.edges().forEach(function (edgeID) {
             var edge = nodeGraph.edge(edgeID);
-            layout.edges[edge.id] = edge.points;
+            layout.edges[edgeID.name] = { points: edge.points };
         });
         return layout;
-    }), operators_1.debounceTime(100));
+    }));
     return layoutStream;
 }
 exports.getLayoutStream = getLayoutStream;
@@ -119,4 +121,5 @@ function difference(arr1, arr2) {
     arr2.forEach(function (i) { diff["delete"](i); });
     return Array.from(diff);
 }
+exports.difference = difference;
 //# sourceMappingURL=SceneLayout.js.map

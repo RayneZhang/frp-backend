@@ -419,3 +419,26 @@ export class GenNode extends StaticInfoNode {
         this.subscription.unsubscribe();
     };
 }
+
+/**
+ * A node that represents a 3D model
+ */
+export class ObjNode extends StaticInfoNode {
+    public constructor(label: string, inputs: InputInfo[]) {
+        // Initiate outputs using the same info as inputs.
+        const outputs: OutputInfo[] = inputs.map((input: InputInfo) => ({name: input.name, type: input.type, raw: input.raw}));
+        super(label, inputs, outputs);
+        this.out = this.inputStream.pipe(
+            mergeMap((args: Observable<any>[]) => {
+                return combineLatest(...args);
+            }),
+            map((argValues: any[]) => {
+                let result = {};
+                // Map each output name to the corresponding value.
+                outputs.forEach((prop: OutputInfo, i: number) => result[prop.name] = argValues[i]);
+                return result;
+            })
+        );
+        this.establishOutputStream();
+    };
+}

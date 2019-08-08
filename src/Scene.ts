@@ -1,6 +1,7 @@
 import { Edge, Loc } from './Edge';
 import { Node, ConstantNode, PROP_DEFAULT_NAME } from './Node';
 import  { ops }  from './Ops';
+import { objs } from './Objs';
 import { combineLatest, BehaviorSubject, Observable } from 'rxjs';
 import update from 'immutability-helper';
 import { getLayoutStream, Layout } from './SceneLayout';
@@ -53,6 +54,16 @@ export class Scene {
         const opFn = ops[name];
         const op = opFn();
         return this.addNode(op);
+    }
+
+    /**
+     * Add an object to the scene
+     * @param name The name of the object
+     */
+    public addObj(name: string): Node {
+        const objFn = objs[name];
+        const obj = objFn();
+        return this.addNode(obj);
     }
 
     // Add any node to the scene
