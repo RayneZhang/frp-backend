@@ -2,6 +2,10 @@
 exports.__esModule = true;
 var Scene_1 = require("./Scene");
 exports.Scene = Scene_1.Scene;
+var Node_1 = require("./Node");
+exports.Node = Node_1.Node;
+var Edge_1 = require("./Edge");
+exports.Edge = Edge_1.Edge;
 // import { Scene } from './Scene';
 // const scene = new Scene();
 // const cube = scene.addObj('cube', [{name: 'color', default: 'red'}]);

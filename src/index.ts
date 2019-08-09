@@ -1,4 +1,6 @@
 export { Scene } from './Scene';
+export { Node } from './Node';
+export { Edge } from './Edge';
 // import { Scene } from './Scene';
 
 // const scene = new Scene();
