@@ -2,16 +2,6 @@ export { Scene } from './Scene';
 // import { Scene } from './Scene';
 
 // const scene = new Scene();
-// const a = scene.addConstant(2000);
-// // const gen = scene.addOp('gen');
-// // scene.addEdge(a, {node: gen, prop: 'delay'})
-// const b = scene.addConstant(10);
-// const p = scene.addOp('+');
-// scene.addEdge(b, p);
-// scene.addEdge(a, p);
-// p.pluckOutput().subscribe(function (value) {
-//     console.log("add output is", value);
-// });
 
 // const cube = scene.addObj('cube', [{name: 'color', default: 'red'}]);
 // const sphere = scene.addObj('sphere', [{name: 'color', default: 'blue'}]);
@@ -19,3 +9,5 @@ export { Scene } from './Scene';
 //     console.log("sphere output is", value);
 // })
 // scene.addEdge({node: cube, prop: 'color'}, {node: sphere, prop: 'color'});
+// console.log(scene.getNode('node-1').getID());
+// console.log(scene.getNode('node-2').getID());

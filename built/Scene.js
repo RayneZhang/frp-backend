@@ -140,6 +140,34 @@ var Scene = /** @class */ (function () {
      * Get a stream whose values are the current edges in the scene
      */
     Scene.prototype.getEdgesStream = function () { return this.edgesStream; };
+    /**
+     * Returns a node based on the given node id
+     * @param nodeID The node's unique ID
+     */
+    Scene.prototype.getNode = function (nodeID) {
+        var nodesValue = this.nodesStream.getValue();
+        // Go through all of the nodes and compare their IDs
+        for (var i = 0; i < nodesValue.length; i++) {
+            if (nodeID === nodesValue[i].getID())
+                return nodesValue[i];
+        }
+        // Return null if there is no node ID match
+        return null;
+    };
+    /**
+    * Returns an edge based on the given edge id
+    * @param edgeID The edge's unique ID
+    */
+    Scene.prototype.getEdge = function (edgeID) {
+        var edgesValue = this.edgesStream.getValue();
+        // Go through all of the nodes and compare their IDs
+        for (var i = 0; i < edgesValue.length; i++) {
+            if (edgeID === edgesValue[i].getID())
+                return edgesValue[i];
+        }
+        // Return null if there is no edge ID match
+        return null;
+    };
     return Scene;
 }());
 exports.Scene = Scene;

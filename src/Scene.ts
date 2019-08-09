@@ -154,4 +154,32 @@ export class Scene {
      * Get a stream whose values are the current edges in the scene
      */
     public getEdgesStream(): Observable<Edge[]> { return this.edgesStream; }
+
+    /**
+     * Returns a node based on the given node id
+     * @param nodeID The node's unique ID
+     */
+    public getNode(nodeID: string): Node { 
+        const nodesValue: Node[] = this.nodesStream.getValue();
+        // Go through all of the nodes and compare their IDs
+        for (let i = 0; i < nodesValue.length; i++) {
+            if (nodeID === nodesValue[i].getID()) return nodesValue[i];
+        }
+        // Return null if there is no node ID match
+        return null;
+     } 
+
+     /**
+     * Returns an edge based on the given edge id
+     * @param edgeID The edge's unique ID
+     */
+    public getEdge(edgeID: string): Edge { 
+        const edgesValue: Edge[] = this.edgesStream.getValue();
+        // Go through all of the nodes and compare their IDs
+        for (let i = 0; i < edgesValue.length; i++) {
+            if (edgeID === edgesValue[i].getID()) return edgesValue[i];
+        }
+        // Return null if there is no edge ID match
+        return null;
+     } 
 }
