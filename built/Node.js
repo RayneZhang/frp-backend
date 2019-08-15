@@ -384,18 +384,40 @@ var ObjNode = /** @class */ (function (_super) {
         // Initiate outputs using the same info as inputs.
         var outputs = inputs.map(function (input) { return ({ name: input.name, type: input.type, raw: input.raw }); });
         _this = _super.call(this, label, inputs, outputs) || this;
-        _this.out = _this.inputStream.pipe(operators_1.mergeMap(function (args) {
+        // Initiate updates using the same info as inputs.
+        var updates = inputs.map(function (input) { return ({ name: input.name, value: input["default"], type: input.type, raw: input.raw }); });
+        _this.updateInfo = new rxjs_1.BehaviorSubject(updates);
+        var inputsAndUpdates = rxjs_1.combineLatest(_this.inputStream.pipe(operators_1.mergeMap(function (args) {
             return rxjs_1.combineLatest.apply(void 0, args);
-        }), operators_1.map(function (argValues) {
+        })), _this.updateInfo);
+        _this.out = inputsAndUpdates.pipe(operators_1.map(function (_a) {
+            // if (label === 'sphere')
+            // console.log(`${updates[1].name}, ${updates[1].value}`);
+            var argValues = _a[0], updates = _a[1];
             var result = {};
             // Map each output name to the corresponding value.
-            outputs.forEach(function (prop, i) { return result[prop.name] = argValues[i]; });
+            outputs.forEach(function (prop, i) {
+                if (argValues[i] === inputs[i]["default"])
+                    result[prop.name] = updates[i].value;
+                else
+                    result[prop.name] = argValues[i];
+            });
             return result;
         }));
         _this.establishOutputStream();
         return _this;
     }
     ;
+    ObjNode.prototype.update = function (name, value) {
+        var latestUpdate = this.updateInfo.getValue();
+        for (var i = 0; i < latestUpdate.length; i++) {
+            if (latestUpdate[i].name === name) {
+                latestUpdate[i].value = value;
+                break;
+            }
+        }
+        this.updateInfo.next(latestUpdate);
+    };
     return ObjNode;
 }(StaticInfoNode));
 exports.ObjNode = ObjNode;

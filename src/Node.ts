@@ -22,12 +22,20 @@ export interface InputInfo {
     default?: any, // the default value if a value isn't supplied
     rest?: boolean, // whether this input should "consume" everything else passed to it
     type?: string, // the type of this input
+    update?: any, // the update value if the default is dynamic
     raw?: boolean // Whether to input the raw stream object itself (as opposed to the value of the stream)
 }
 
 // Information about a given output for a node
 export interface OutputInfo {
     name: string, // The name of this output
+    type?: string, // The type of this output
+    raw?: boolean // Whether the output supplied should be taken as a raw stream
+}
+
+export interface UpdateInfo {
+    name: string, // The name of this output
+    value: any, // The value
     type?: string, // The type of this output
     raw?: boolean // Whether the output supplied should be taken as a raw stream
 }
@@ -424,21 +432,48 @@ export class GenNode extends StaticInfoNode {
  * A node that represents a 3D model
  */
 export class ObjNode extends StaticInfoNode {
+    protected updateInfo: BehaviorSubject<UpdateInfo[]>; // The internal property update stream
+
     public constructor(label: string, inputs: InputInfo[]) {
         // Initiate outputs using the same info as inputs.
         const outputs: OutputInfo[] = inputs.map((input: InputInfo) => ({name: input.name, type: input.type, raw: input.raw}));
         super(label, inputs, outputs);
-        this.out = this.inputStream.pipe(
+        // Initiate updates using the same info as inputs.
+        const updates: UpdateInfo[] = inputs.map((input: InputInfo) => ({name: input.name, value: input.default, type: input.type, raw: input.raw}));
+        this.updateInfo = new BehaviorSubject<UpdateInfo[]>(updates);
+
+        const inputsAndUpdates = combineLatest(this.inputStream.pipe(
             mergeMap((args: Observable<any>[]) => {
                 return combineLatest(...args);
-            }),
-            map((argValues: any[]) => {
+            })
+        ), this.updateInfo);
+        this.out = inputsAndUpdates.pipe(
+            map(([argValues, updates] : [any[], UpdateInfo[]]) => {
+                // if (label === 'sphere')
+                // console.log(`${updates[1].name}, ${updates[1].value}`);
+
                 let result = {};
                 // Map each output name to the corresponding value.
-                outputs.forEach((prop: OutputInfo, i: number) => result[prop.name] = argValues[i]);
+                outputs.forEach((prop: OutputInfo, i: number) => {
+                    if (argValues[i] === inputs[i].default)
+                        result[prop.name] = updates[i].value;
+                    else
+                        result[prop.name] = argValues[i];
+                });
                 return result;
             })
         );
         this.establishOutputStream();
     };
+
+    public update(name: string, value: string): void {
+        const latestUpdate: UpdateInfo[] = this.updateInfo.getValue();
+        for (let i = 0; i < latestUpdate.length; i++) {
+            if (latestUpdate[i].name === name) {
+                latestUpdate[i].value = value;
+                break;
+            }
+        }
+        this.updateInfo.next(latestUpdate);
+    }
 }

@@ -60,9 +60,10 @@ export class Scene {
      * @param name The human-readable label of the object
      * @param inputs The input infos with default values
      */
-    public addObj(name: string, inputs: InputInfo[]): Node {
+    public addObj(name: string, inputs: InputInfo[]): ObjNode {
         const obj = new ObjNode(name, inputs);
-        return this.addNode(obj);
+        this.addNode(obj)
+        return obj;
     }
 
     // Add any node to the scene

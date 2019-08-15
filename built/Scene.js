@@ -57,7 +57,8 @@ var Scene = /** @class */ (function () {
      */
     Scene.prototype.addObj = function (name, inputs) {
         var obj = new Node_1.ObjNode(name, inputs);
-        return this.addNode(obj);
+        this.addNode(obj);
+        return obj;
     };
     // Add any node to the scene
     Scene.prototype.addNode = function (node) {
