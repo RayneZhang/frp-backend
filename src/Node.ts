@@ -1,5 +1,5 @@
 import { Observable, of, BehaviorSubject, combineLatest, isObservable, Subject, Subscription } from "rxjs";
-import { pluck, map, mergeMap } from "rxjs/operators";
+import { pluck, map, mergeMap, switchMap } from "rxjs/operators";
 import { Edge } from "./Edge";
 import update from 'immutability-helper';
 import _default from "immutability-helper";
@@ -443,10 +443,11 @@ export class ObjNode extends StaticInfoNode {
         this.updateInfo = new BehaviorSubject<UpdateInfo[]>(updates);
 
         const inputsAndUpdates = combineLatest(this.inputStream.pipe(
-            mergeMap((args: Observable<any>[]) => {
+            switchMap((args: Observable<any>[]) => {
                 return combineLatest(...args);
             })
-        ), this.updateInfo);
+        ), this.updateInfo);        
+
         this.out = inputsAndUpdates.pipe(
             map(([argValues, updates] : [any[], UpdateInfo[]]) => {
                 // if (label === 'sphere')
@@ -466,14 +467,16 @@ export class ObjNode extends StaticInfoNode {
         this.establishOutputStream();
     };
 
-    public update(name: string, value: string): void {
+    public update(name: string, _value: string): void {
         const latestUpdate: UpdateInfo[] = this.updateInfo.getValue();
         for (let i = 0; i < latestUpdate.length; i++) {
             if (latestUpdate[i].name === name) {
-                latestUpdate[i].value = value;
+                latestUpdate[i].value = _value;
                 break;
             }
         }
+        // console.log(this.updateInfo.getValue());
         this.updateInfo.next(latestUpdate);
+        
     }
 }

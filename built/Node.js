@@ -387,7 +387,7 @@ var ObjNode = /** @class */ (function (_super) {
         // Initiate updates using the same info as inputs.
         var updates = inputs.map(function (input) { return ({ name: input.name, value: input["default"], type: input.type, raw: input.raw }); });
         _this.updateInfo = new rxjs_1.BehaviorSubject(updates);
-        var inputsAndUpdates = rxjs_1.combineLatest(_this.inputStream.pipe(operators_1.mergeMap(function (args) {
+        var inputsAndUpdates = rxjs_1.combineLatest(_this.inputStream.pipe(operators_1.switchMap(function (args) {
             return rxjs_1.combineLatest.apply(void 0, args);
         })), _this.updateInfo);
         _this.out = inputsAndUpdates.pipe(operators_1.map(function (_a) {
@@ -408,14 +408,15 @@ var ObjNode = /** @class */ (function (_super) {
         return _this;
     }
     ;
-    ObjNode.prototype.update = function (name, value) {
+    ObjNode.prototype.update = function (name, _value) {
         var latestUpdate = this.updateInfo.getValue();
         for (var i = 0; i < latestUpdate.length; i++) {
             if (latestUpdate[i].name === name) {
-                latestUpdate[i].value = value;
+                latestUpdate[i].value = _value;
                 break;
             }
         }
+        // console.log(this.updateInfo.getValue());
         this.updateInfo.next(latestUpdate);
     };
     return ObjNode;
