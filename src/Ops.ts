@@ -1,6 +1,6 @@
 import { OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval } from 'rxjs';
-import { take, delay } from 'rxjs/operators';
+import { take, delay, combineLatest, map, switchMap, mergeMap } from 'rxjs/operators';
 
 // unary ops accept *one* arguments
 function createUnaryOpNode(name: string, fn: (a: any) => any, arg1Name: string = 'a'): ()=>OpNode {
@@ -48,5 +48,13 @@ export const ops = {
                     return stream.pipe(delay(d));
                 }, [{ name: 'stream', raw: true}, { name: 'delay' }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
+    'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
+        return event.pipe(
+            mergeMap(() => {
+                return signal.pipe(take(1));
+            })
+        );
+    }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }],
+        { name: 'output', raw: true }),
 
 }

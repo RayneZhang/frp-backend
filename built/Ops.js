@@ -47,6 +47,11 @@ exports.ops = {
     }, [{ name: 'period' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'delay': function () { return new Node_1.OpNode('delay', function (stream, d) {
         return stream.pipe(operators_1.delay(d));
-    }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); }
+    }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
+    'snapshot': function () { return new Node_1.OpNode('snapshot', function (signal, event) {
+        return event.pipe(operators_1.mergeMap(function () {
+            return signal.pipe(operators_1.take(1));
+        }));
+    }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); }
 };
 //# sourceMappingURL=Ops.js.map
