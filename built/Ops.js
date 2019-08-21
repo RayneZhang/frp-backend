@@ -3,6 +3,7 @@ exports.__esModule = true;
 var Node_1 = require("./Node");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
+var _1 = require(".");
 // unary ops accept *one* arguments
 function createUnaryOpNode(name, fn, arg1Name) {
     if (arg1Name === void 0) { arg1Name = 'a'; }
@@ -52,6 +53,14 @@ exports.ops = {
         return event.pipe(operators_1.mergeMap(function () {
             return signal.pipe(operators_1.take(1));
         }));
-    }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); }
+    }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); },
+    'create': function () { return new Node_1.OpNode('create', function (object, position) {
+        return position.pipe(operators_1.mergeMap(function (pos) {
+            return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
+                var createdNode = _1.scene.addObj(objName, [{ name: 'position', "default": pos }]);
+                return createdNode.getID();
+            }));
+        }));
+    }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); }
 };
 //# sourceMappingURL=Ops.js.map

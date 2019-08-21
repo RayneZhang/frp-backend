@@ -1,6 +1,7 @@
 import { OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
-import { Observable, interval } from 'rxjs';
-import { take, delay, combineLatest, map, switchMap, mergeMap } from 'rxjs/operators';
+import { Observable, interval, BehaviorSubject } from 'rxjs';
+import { take, delay, mergeMap, map } from 'rxjs/operators';
+import { scene } from '.';
 
 // unary ops accept *one* arguments
 function createUnaryOpNode(name: string, fn: (a: any) => any, arg1Name: string = 'a'): ()=>OpNode {
@@ -49,12 +50,23 @@ export const ops = {
                 }, [{ name: 'stream', raw: true}, { name: 'delay' }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
-        return event.pipe(
-            mergeMap(() => {
-                return signal.pipe(take(1));
-            })
-        );
-    }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }],
-        { name: 'output', raw: true }),
+                    return event.pipe(mergeMap(() => {
+                            return signal.pipe(take(1));
+                        }));
+                }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }],
+                    { name: 'output', raw: true }),
+    'create': () =>  new OpNode('create', (object: Observable<any>, position: Observable<any>): Observable<any> => {
+                    return position.pipe(mergeMap((pos: any) => {
+                            return object.pipe(
+                                take(1),
+                                map((objName) => {
+                                    const createdNode = scene.addObj(objName, [{name: 'position', default: pos}]);
+                                    return createdNode.getID();
+                                })
+                            );
+                        })
+                    );
+                }, [{ name: 'object', raw: true }, { name: 'position', raw: true }],
+                    { name: 'object', raw: true }),
 
 }
