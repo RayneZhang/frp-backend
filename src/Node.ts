@@ -154,7 +154,7 @@ export abstract class Node {
                     } else {
                         args.push(combineLatest(...props)); // If we have multiple items, use combineLatest (TODO: not sure if this is actually the best thing to do)
                     }
-                } else if(ii.default) { // If nothing was supplied but there's a default value, just use the default
+                } else if(ii.default != null && ii.default != undefined) { // If nothing was supplied but there's a default value, just use the default
                     args.push(of(ii.default));
                 } else {
                     args.push(undefined); // Otherwise, just add it as an undefined arg

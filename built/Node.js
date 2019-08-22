@@ -112,7 +112,7 @@ var Node = /** @class */ (function () {
                         args.push(rxjs_1.combineLatest.apply(void 0, props)); // If we have multiple items, use combineLatest (TODO: not sure if this is actually the best thing to do)
                     }
                 }
-                else if (ii["default"]) { // If nothing was supplied but there's a default value, just use the default
+                else if (ii["default"] != null && ii["default"] != undefined) { // If nothing was supplied but there's a default value, just use the default
                     args.push(rxjs_1.of(ii["default"]));
                 }
                 else {
