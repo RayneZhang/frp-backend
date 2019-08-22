@@ -68,5 +68,9 @@ export const ops = {
                     );
                 }, [{ name: 'object', raw: true }, { name: 'position', raw: true }],
                     { name: 'object', raw: true }),
+    // 'translate': () =>  new OpNode('translate', (object: Observable<any>, from: Observable<any>, to: Observable<any>, speed: Observable<any>): Observable<any> => {
+    //                 return new BehaviorSubject<boolean>(false);
+    //             }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: 1}],
+    //                 { name: 'end', raw: true }),
 
 }

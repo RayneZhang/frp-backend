@@ -80,6 +80,11 @@ export abstract class Node {
     }
 
     /**
+     * Get the total node count in the scene.
+     */
+    public static getNodeCount(): number { return this.nodeCount; }
+
+    /**
      * Get a human-readable label for this node
      */
     public getLabel(): string { return this.label; } 

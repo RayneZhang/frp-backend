@@ -39,6 +39,10 @@ var Node = /** @class */ (function () {
         this.id = Node.nodeCount++; // Get a unique id
     }
     /**
+     * Get the total node count in the scene.
+     */
+    Node.getNodeCount = function () { return this.nodeCount; };
+    /**
      * Get a human-readable label for this node
      */
     Node.prototype.getLabel = function () { return this.label; };
