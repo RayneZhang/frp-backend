@@ -61,6 +61,9 @@ exports.ops = {
                 return createdNode.getID();
             }));
         }));
-    }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); }
+    }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },
+    'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
+        return new rxjs_1.BehaviorSubject(false);
+    }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": 1 }], { name: 'end', raw: true }); }
 };
 //# sourceMappingURL=Ops.js.map

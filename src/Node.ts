@@ -356,6 +356,7 @@ export class OpNode extends StaticInfoNode {
                 map((argValues: any[]) => ({ [output.name]: this.func(...argValues) }) //argValues is an array of arg values
             )
         );
+        // this.out.subscribe((x) => console.log(x));
         this.establishOutputStream();
     }
 
@@ -373,6 +374,18 @@ export class OpNode extends StaticInfoNode {
             })
         );
     }
+
+    // public update(name: string, _value: boolean): void {
+    //     const newOut = new BehaviorSubject<boolean>(true);
+    //     this.out = this.inputStream.pipe(
+    //         mergeMap((args: Observable<any>[]) => {
+    //             // args is an array of streams
+    //             return combineLatest(...args);
+    //         }),
+    //         map((argValues: any[]) => ({ [name]: newOut })) //argValues is an array of arg values
+    //     );
+    //     this.establishOutputStream();
+    // }
 }
 
 /** 

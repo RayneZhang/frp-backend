@@ -301,6 +301,7 @@ var OpNode = /** @class */ (function (_super) {
             return (_a = {}, _a[output.name] = _this.func.apply(_this, argValues), _a);
         } //argValues is an array of arg values
         ));
+        // this.out.subscribe((x) => console.log(x));
         _this.establishOutputStream();
         return _this;
     }
