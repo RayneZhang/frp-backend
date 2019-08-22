@@ -1,5 +1,5 @@
 import { Edge, Loc } from './Edge';
-import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, ObjNode } from './Node';
+import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, ObjNode, OpNode } from './Node';
 import  { ops }  from './Ops';
 import { combineLatest, BehaviorSubject, Observable } from 'rxjs';
 import update from 'immutability-helper';
@@ -49,10 +49,11 @@ export class Scene {
      * Add an operation to the scene
      * @param name The name of the op (a key in Op.ts)
      */
-    public addOp(name: string): Node {
+    public addOp(name: string): OpNode {
         const opFn = ops[name];
         const op = opFn();
-        return this.addNode(op);
+        this.addNode(op);
+        return op;
     }
 
     /**
@@ -62,7 +63,7 @@ export class Scene {
      */
     public addObj(name: string, inputs: InputInfo[]): ObjNode {
         const obj = new ObjNode(name, inputs);
-        this.addNode(obj)
+        this.addNode(obj);
         return obj;
     }
 

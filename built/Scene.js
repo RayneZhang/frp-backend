@@ -48,7 +48,8 @@ var Scene = /** @class */ (function () {
     Scene.prototype.addOp = function (name) {
         var opFn = Ops_1.ops[name];
         var op = opFn();
-        return this.addNode(op);
+        this.addNode(op);
+        return op;
     };
     /**
      * Add an object to the scene
