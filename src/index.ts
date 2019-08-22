@@ -2,7 +2,7 @@ export { Scene } from './Scene';
 export { Node, ObjNode } from './Node';
 export { Edge } from './Edge';
 import { Scene } from './Scene';
-export const scene = new Scene();
+export const scene: Scene = new Scene();
 
 // const cube = scene.addObj('cube', [{name: 'color', default: 'red'}, {name: 'position', default: '123'}]);
 // const genericBullet = scene.addObj('genericbullet', [{name: 'object', default: 'sphere'}]);
