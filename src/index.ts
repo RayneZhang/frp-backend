@@ -1,5 +1,5 @@
 export { Scene } from './Scene';
-export { Node, ObjNode } from './Node';
+export { Node, ObjNode, OpNode } from './Node';
 export { Edge } from './Edge';
 import { Scene } from './Scene';
 export const scene: Scene = new Scene();

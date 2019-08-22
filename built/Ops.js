@@ -57,7 +57,7 @@ exports.ops = {
     'create': function () { return new Node_1.OpNode('create', function (object, position) {
         return position.pipe(operators_1.mergeMap(function (pos) {
             return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
-                var createdNode = _1.scene.addObj(objName, [{ name: 'position', "default": pos }]);
+                var createdNode = _1.scene.addObj(objName, [{ name: 'object', "default": "node-" + Node_1.Node.getNodeCount() }, { name: 'position', "default": pos }]);
                 return createdNode.getID();
             }));
         }));

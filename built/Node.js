@@ -304,6 +304,15 @@ var OpNode = /** @class */ (function (_super) {
         _this.establishOutputStream();
         return _this;
     }
+    /***
+     * Allow subscribing to the latest inputs of the OpNode
+     */
+    OpNode.prototype.pluckInputs = function () {
+        return this.inputStream.pipe(operators_1.mergeMap(function (args) {
+            // args is an array of streams
+            return rxjs_1.combineLatest.apply(void 0, args);
+        }));
+    };
     return OpNode;
 }(StaticInfoNode));
 exports.OpNode = OpNode;

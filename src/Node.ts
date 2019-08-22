@@ -358,6 +358,18 @@ export class OpNode extends StaticInfoNode {
         );
         this.establishOutputStream();
     }
+
+    /***
+     * Allow subscribing to the latest inputs of the OpNode
+     */
+    public pluckInputs(): Observable<any> {
+        return this.inputStream.pipe(
+            mergeMap((args: Observable<any>[]) => {
+                // args is an array of streams
+                return combineLatest(...args);
+            })
+        );
+    }
 }
 
 /** 

@@ -1,4 +1,4 @@
-import { OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
+import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval, BehaviorSubject } from 'rxjs';
 import { take, delay, mergeMap, map } from 'rxjs/operators';
 import { scene } from '.';
@@ -60,7 +60,7 @@ export const ops = {
                             return object.pipe(
                                 take(1),
                                 map((objName) => {
-                                    const createdNode = scene.addObj(objName, [{name: 'position', default: pos}]);
+                                    const createdNode = scene.addObj(objName, [{name: 'object', default: `node-${Node.getNodeCount()}`}, {name: 'position', default: pos}]);
                                     return createdNode.getID();
                                 })
                             );

@@ -5,6 +5,7 @@ exports.Scene = Scene_1.Scene;
 var Node_1 = require("./Node");
 exports.Node = Node_1.Node;
 exports.ObjNode = Node_1.ObjNode;
+exports.OpNode = Node_1.OpNode;
 var Edge_1 = require("./Edge");
 exports.Edge = Edge_1.Edge;
 var Scene_2 = require("./Scene");
