@@ -1,5 +1,5 @@
 import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
-import { Observable, interval, BehaviorSubject } from 'rxjs';
+import { Observable, interval, BehaviorSubject, of } from 'rxjs';
 import { take, delay, mergeMap, map } from 'rxjs/operators';
 import { scene } from '.';
 
@@ -70,7 +70,7 @@ export const ops = {
                     { name: 'object', raw: true }),
     'translate': () =>  new OpNode('translate', (object: Observable<any>, from: Observable<any>, to: Observable<any>, speed: Observable<any>): Observable<any> => {
                     return new BehaviorSubject<boolean>(false);
-                }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: 1}],
+                }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: of(1)}],
                     { name: 'end', raw: true }),
 
 }
