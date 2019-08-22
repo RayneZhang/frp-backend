@@ -311,6 +311,8 @@ var OpNode = /** @class */ (function (_super) {
         return this.inputStream.pipe(operators_1.mergeMap(function (args) {
             // args is an array of streams
             return rxjs_1.combineLatest.apply(void 0, args);
+        }), operators_1.mergeMap(function (argValues) {
+            return rxjs_1.combineLatest.apply(void 0, argValues);
         }));
     };
     return OpNode;

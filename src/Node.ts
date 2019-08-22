@@ -367,6 +367,9 @@ export class OpNode extends StaticInfoNode {
             mergeMap((args: Observable<any>[]) => {
                 // args is an array of streams
                 return combineLatest(...args);
+            }),
+            mergeMap((argValues: any[]) => {
+                return combineLatest(...argValues);
             })
         );
     }

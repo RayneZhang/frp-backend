@@ -19,6 +19,9 @@ export const scene: Scene = new Scene();
 // create.pluckOutput('object').subscribe(function (value) {
 //     console.log("create output is", value);
 // })
+// create.pluckInputs().subscribe((x) => {
+//     console.log(x);
+// });
 // cube.update('position', '000');
 // e.update('condition', 'true');
 // cube.update('position', '111');
