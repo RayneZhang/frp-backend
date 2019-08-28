@@ -427,6 +427,7 @@ var ObjNode = /** @class */ (function (_super) {
     ObjNode.prototype.update = function (name, _value) {
         var latestUpdate = this.updateInfo.getValue();
         for (var i = 0; i < latestUpdate.length; i++) {
+            // We also handled property names that do not exist.
             if (latestUpdate[i].name === name) {
                 latestUpdate[i].value = _value;
                 break;

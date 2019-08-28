@@ -503,6 +503,7 @@ export class ObjNode extends StaticInfoNode {
     public update(name: string, _value: any): void {
         const latestUpdate: UpdateInfo[] = this.updateInfo.getValue();
         for (let i = 0; i < latestUpdate.length; i++) {
+            // We also handled property names that do not exist.
             if (latestUpdate[i].name === name) {
                 latestUpdate[i].value = _value;
                 break;

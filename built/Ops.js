@@ -64,6 +64,19 @@ exports.ops = {
     }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },
     'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
         return new rxjs_1.BehaviorSubject(false);
-    }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": rxjs_1.of(1) }], { name: 'end', raw: true }); }
+    }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": rxjs_1.of(1) }], { name: 'end', raw: true }); },
+    'destroy': function () { return new Node_1.OpNode('destroy', function (object, event) {
+        return event.pipe(operators_1.mergeMap(function (e) {
+            return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
+                var createdNode = _1.scene.getNode(objName);
+                if (!createdNode || !e)
+                    return false;
+                else {
+                    _1.scene.removeNode(createdNode);
+                    return true;
+                }
+            }));
+        }));
+    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }], { name: 'end', raw: true }); }
 };
 //# sourceMappingURL=Ops.js.map

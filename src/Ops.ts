@@ -72,5 +72,21 @@ export const ops = {
                     return new BehaviorSubject<boolean>(false);
                 }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: of(1)}],
                     { name: 'end', raw: true }),
-
+    'destroy': () =>  new OpNode('destroy', (object: Observable<any>, event: Observable<any>): Observable<any> => {
+        return event.pipe(mergeMap((e: any) => {
+                return object.pipe(
+                    take(1),
+                    map((objName) => {
+                        const createdNode = scene.getNode(objName);
+                        if (!createdNode || !e) return false;
+                        else {
+                            scene.removeNode(createdNode);
+                            return true;
+                        }
+                    })
+                );
+            })
+        );
+    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }],
+        { name: 'end', raw: true }),
 }
