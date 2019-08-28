@@ -50,6 +50,7 @@ export const ops = {
                 }, [{ name: 'stream', raw: true}, { name: 'delay' }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
+                    // TODO: Filter events that are false/null/undefined.
                     return event.pipe(mergeMap(() => {
                             return signal.pipe(take(1));
                         }));
@@ -69,7 +70,7 @@ export const ops = {
                 }, [{ name: 'object', raw: true }, { name: 'position', raw: true }],
                     { name: 'object', raw: true }),
     'translate': () =>  new OpNode('translate', (object: Observable<any>, from: Observable<any>, to: Observable<any>, speed: Observable<any>): Observable<any> => {
-                    return new BehaviorSubject<boolean>(false);
+                    return null;
                 }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: of(1)}],
                     { name: 'end', raw: true }),
     'destroy': () =>  new OpNode('destroy', (object: Observable<any>, event: Observable<any>): Observable<any> => {

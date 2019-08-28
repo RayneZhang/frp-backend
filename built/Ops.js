@@ -50,6 +50,7 @@ exports.ops = {
         return stream.pipe(operators_1.delay(d));
     }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'snapshot': function () { return new Node_1.OpNode('snapshot', function (signal, event) {
+        // TODO: Filter events that are false/null/undefined.
         return event.pipe(operators_1.mergeMap(function () {
             return signal.pipe(operators_1.take(1));
         }));
@@ -63,7 +64,7 @@ exports.ops = {
         }));
     }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },
     'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
-        return new rxjs_1.BehaviorSubject(false);
+        return null;
     }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": rxjs_1.of(1) }], { name: 'end', raw: true }); },
     'destroy': function () { return new Node_1.OpNode('destroy', function (object, event) {
         return event.pipe(operators_1.mergeMap(function (e) {

@@ -35,9 +35,13 @@ export const scene: Scene = new Scene();
 // e.update('condition', 'true');
 
 // const translate = scene.addOp('translate');
-// scene.addEdge({node: create, prop: 'object'}, {node: translate, prop: 'object'});
+// scene.addEdge({node: genericBullet, prop: 'object'}, {node: translate, prop: 'object'});
 // scene.addEdge({node: cube, prop: 'position'}, {node: translate, prop: 'from'});
 // scene.addEdge({node: sphere, prop: 'position'}, {node: translate, prop: 'to'});
 // translate.pluckInputs().subscribe(function (value) {
 //    console.log("translate inputs are", value);
 // })
+// translate.pluckOutput('end').subscribe((x) => {
+//     console.log(x);
+// });
+// translate.updateOutput('end', true);

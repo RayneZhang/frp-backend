@@ -339,9 +339,12 @@ abstract class StaticInfoNode extends Node {
  * Represents a node that is a single operation (static information, any number of inputs, one output)
  */
 export class OpNode extends StaticInfoNode {
+    protected outputVal: BehaviorSubject<boolean>; // The internal property update stream
+
     public constructor(label: string, private func: (...args: any[]) => any, inputs: InputInfo[], output: OutputInfo) {
         super(label, inputs, [output]);
         this.establishInputStream();
+        this.outputVal = new BehaviorSubject<boolean>(false);
 
         // this.inputStream: a stream of (arrays of (streams of arg values) )
         //   x: (1---2--3) -\
@@ -353,7 +356,11 @@ export class OpNode extends StaticInfoNode {
                     // args is an array of streams
                     return combineLatest(...args);
                 }),
-                map((argValues: any[]) => ({ [output.name]: this.func(...argValues) }) //argValues is an array of arg values
+                map((argValues: any[]) => { 
+                    const result = this.func(...argValues);
+                    if (!result) return {[output.name]: this.outputVal};
+                    else return {[output.name]: this.func(...argValues)}; 
+                } //argValues is an array of arg values
             )
         );
         // this.out.subscribe((x) => console.log(x));
@@ -375,17 +382,9 @@ export class OpNode extends StaticInfoNode {
         );
     }
 
-    // public update(name: string, _value: boolean): void {
-    //     const newOut = new BehaviorSubject<boolean>(true);
-    //     this.out = this.inputStream.pipe(
-    //         mergeMap((args: Observable<any>[]) => {
-    //             // args is an array of streams
-    //             return combineLatest(...args);
-    //         }),
-    //         map((argValues: any[]) => ({ [name]: newOut })) //argValues is an array of arg values
-    //     );
-    //     this.establishOutputStream();
-    // }
+    public updateOutput(name: string, _value: boolean): void {
+        this.outputVal.next(_value);
+    }
 }
 
 /** 

@@ -288,6 +288,7 @@ var OpNode = /** @class */ (function (_super) {
         var _this = _super.call(this, label, inputs, [output]) || this;
         _this.func = func;
         _this.establishInputStream();
+        _this.outputVal = new rxjs_1.BehaviorSubject(false);
         // this.inputStream: a stream of (arrays of (streams of arg values) )
         //   x: (1---2--3) -\
         //                   >-- (+)
@@ -297,8 +298,12 @@ var OpNode = /** @class */ (function (_super) {
             // args is an array of streams
             return rxjs_1.combineLatest.apply(void 0, args);
         }), operators_1.map(function (argValues) {
-            var _a;
-            return (_a = {}, _a[output.name] = _this.func.apply(_this, argValues), _a);
+            var _a, _b;
+            var result = _this.func.apply(_this, argValues);
+            if (!result)
+                return _a = {}, _a[output.name] = _this.outputVal, _a;
+            else
+                return _b = {}, _b[output.name] = _this.func.apply(_this, argValues), _b;
         } //argValues is an array of arg values
         ));
         // this.out.subscribe((x) => console.log(x));
@@ -315,6 +320,9 @@ var OpNode = /** @class */ (function (_super) {
         }), operators_1.mergeMap(function (argValues) {
             return rxjs_1.combineLatest.apply(void 0, argValues);
         }));
+    };
+    OpNode.prototype.updateOutput = function (name, _value) {
+        this.outputVal.next(_value);
     };
     return OpNode;
 }(StaticInfoNode));
