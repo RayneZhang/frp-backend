@@ -1,6 +1,6 @@
 import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval, BehaviorSubject, of } from 'rxjs';
-import { take, delay, mergeMap, map } from 'rxjs/operators';
+import { take, delay, mergeMap, map, filter } from 'rxjs/operators';
 import { scene } from '.';
 
 // unary ops accept *one* arguments
@@ -51,9 +51,12 @@ export const ops = {
                     { name: PROP_DEFAULT_NAME, raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
                     // TODO: Filter events that are false/null/undefined.
-                    return event.pipe(mergeMap(() => {
+                    return event.pipe(
+                        filter((e) => e),
+                        mergeMap(() => {
                             return signal.pipe(take(1));
-                        }));
+                        })
+                    );
                 }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }],
                     { name: 'output', raw: true }),
     'create': () =>  new OpNode('create', (object: Observable<any>, position: Observable<any>): Observable<any> => {

@@ -51,7 +51,7 @@ exports.ops = {
     }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'snapshot': function () { return new Node_1.OpNode('snapshot', function (signal, event) {
         // TODO: Filter events that are false/null/undefined.
-        return event.pipe(operators_1.mergeMap(function () {
+        return event.pipe(operators_1.filter(function (e) { return e; }), operators_1.mergeMap(function () {
             return signal.pipe(operators_1.take(1));
         }));
     }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); },

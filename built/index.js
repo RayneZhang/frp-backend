@@ -20,9 +20,22 @@ exports.scene = new Scene_2.Scene();
 // scene.addEdge({node: cube, prop: 'position'}, {node: sphere, prop: 'position'});
 // scene.addEdge({node: cube, prop: 'object'}, {node: destroy, prop: 'object'});
 // scene.addEdge({node: e, prop: 'condition'}, {node: destroy, prop: 'event'});
-// // scene.addEdge({node: genericBullet, prop: 'object'}, {node: create, prop: 'object'});
-// // scene.addEdge({node: snapshot, prop: 'output'}, {node: create, prop: 'position'});
-// // cube.update('object', 'node-1');
+// scene.addEdge({node: sphere, prop: 'position'}, {node: snapshot, prop: 'signal'});
+// scene.addEdge({node: e, prop: 'condition'}, {node: snapshot, prop: 'event'});
+// snapshot.pluckOutput('output').subscribe(function (value) {
+//     console.log("snapshot output is", value);
+// })
+// e.update('condition', true);
+// e.update('condition', false);
+// e.update('condition', true);
+// scene.addEdge({node: genericBullet, prop: 'object'}, {node: create, prop: 'object'});
+// scene.addEdge({node: cube, prop: 'position'}, {node: create, prop: 'position'});
+// create.pluckOutput('object').subscribe(function (value) {
+//     console.log("create object is", value);
+// })
+// cube.update('position', '000');
+// cube.update('position', '111');
+// cube.update('position', '222');
 // sphere.pluckOutput('position').subscribe(function (value) {
 //     console.log("sphere position is", value);
 // })
