@@ -50,7 +50,6 @@ exports.ops = {
         return stream.pipe(operators_1.delay(d));
     }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'snapshot': function () { return new Node_1.OpNode('snapshot', function (signal, event) {
-        // TODO: Filter events that are false/null/undefined.
         return event.pipe(operators_1.filter(function (e) { return e; }), operators_1.mergeMap(function () {
             return signal.pipe(operators_1.take(1));
         }));
@@ -58,8 +57,7 @@ exports.ops = {
     'create': function () { return new Node_1.OpNode('create', function (object, position) {
         return position.pipe(operators_1.mergeMap(function (pos) {
             return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
-                var createdNode = _1.scene.addObj(objName, [{ name: 'object', "default": "node-" + Node_1.Node.getNodeCount() }, { name: 'position', "default": pos }]);
-                return createdNode.getID();
+                return null;
             }));
         }));
     }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },

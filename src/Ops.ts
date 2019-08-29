@@ -50,7 +50,6 @@ export const ops = {
                 }, [{ name: 'stream', raw: true}, { name: 'delay' }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
-                    // TODO: Filter events that are false/null/undefined.
                     return event.pipe(
                         filter((e) => e),
                         mergeMap(() => {
@@ -64,8 +63,7 @@ export const ops = {
                             return object.pipe(
                                 take(1),
                                 map((objName) => {
-                                    const createdNode = scene.addObj(objName, [{name: 'object', default: `node-${Node.getNodeCount()}`}, {name: 'position', default: pos}]);
-                                    return createdNode.getID();
+                                    return null;
                                 })
                             );
                         })

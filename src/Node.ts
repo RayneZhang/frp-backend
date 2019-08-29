@@ -339,12 +339,12 @@ abstract class StaticInfoNode extends Node {
  * Represents a node that is a single operation (static information, any number of inputs, one output)
  */
 export class OpNode extends StaticInfoNode {
-    protected outputVal: BehaviorSubject<boolean>; // The internal property update stream
+    protected outputVal: BehaviorSubject<any>; // The internal output property update stream
 
     public constructor(label: string, private func: (...args: any[]) => any, inputs: InputInfo[], output: OutputInfo) {
         super(label, inputs, [output]);
         this.establishInputStream();
-        this.outputVal = new BehaviorSubject<boolean>(false);
+        this.outputVal = new BehaviorSubject<any>(null);
 
         // this.inputStream: a stream of (arrays of (streams of arg values) )
         //   x: (1---2--3) -\
@@ -363,7 +363,6 @@ export class OpNode extends StaticInfoNode {
                 } //argValues is an array of arg values
             )
         );
-        // this.out.subscribe((x) => console.log(x));
         this.establishOutputStream();
     }
 
@@ -382,7 +381,7 @@ export class OpNode extends StaticInfoNode {
         );
     }
 
-    public updateOutput(name: string, _value: boolean): void {
+    public updateOutput(name: string, _value: any): void {
         this.outputVal.next(_value);
     }
 }

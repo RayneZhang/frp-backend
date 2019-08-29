@@ -288,7 +288,7 @@ var OpNode = /** @class */ (function (_super) {
         var _this = _super.call(this, label, inputs, [output]) || this;
         _this.func = func;
         _this.establishInputStream();
-        _this.outputVal = new rxjs_1.BehaviorSubject(false);
+        _this.outputVal = new rxjs_1.BehaviorSubject(null);
         // this.inputStream: a stream of (arrays of (streams of arg values) )
         //   x: (1---2--3) -\
         //                   >-- (+)
@@ -306,7 +306,6 @@ var OpNode = /** @class */ (function (_super) {
                 return _b = {}, _b[output.name] = _this.func.apply(_this, argValues), _b;
         } //argValues is an array of arg values
         ));
-        // this.out.subscribe((x) => console.log(x));
         _this.establishOutputStream();
         return _this;
     }
