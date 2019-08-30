@@ -55,11 +55,7 @@ exports.ops = {
         }));
     }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); },
     'create': function () { return new Node_1.OpNode('create', function (object, position) {
-        return position.pipe(operators_1.mergeMap(function (pos) {
-            return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
-                return null;
-            }));
-        }));
+        return null;
     }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },
     'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
         return null;

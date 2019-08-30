@@ -59,15 +59,7 @@ export const ops = {
                 }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }],
                     { name: 'output', raw: true }),
     'create': () =>  new OpNode('create', (object: Observable<any>, position: Observable<any>): Observable<any> => {
-                    return position.pipe(mergeMap((pos: any) => {
-                            return object.pipe(
-                                take(1),
-                                map((objName) => {
-                                    return null;
-                                })
-                            );
-                        })
-                    );
+                    return null;
                 }, [{ name: 'object', raw: true }, { name: 'position', raw: true }],
                     { name: 'object', raw: true }),
     'translate': () =>  new OpNode('translate', (object: Observable<any>, from: Observable<any>, to: Observable<any>, speed: Observable<any>): Observable<any> => {
