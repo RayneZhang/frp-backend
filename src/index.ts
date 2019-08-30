@@ -36,6 +36,8 @@ export const scene: Scene = new Scene();
 // cube.update('position', '000');
 // cube.update('position', '111');
 // cube.update('position', '222');
+// create.updateOutput('object', 'node-3');
+// create.updateOutput('object', 'node-4');
 
 
 // sphere.pluckOutput('position').subscribe(function (value) {
