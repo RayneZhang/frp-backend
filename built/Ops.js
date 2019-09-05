@@ -4,6 +4,7 @@ var Node_1 = require("./Node");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var _1 = require(".");
+var three_1 = require("three");
 // unary ops accept *one* arguments
 function createUnaryOpNode(name, fn, arg1Name) {
     if (arg1Name === void 0) { arg1Name = 'a'; }
@@ -72,6 +73,13 @@ exports.ops = {
                 }
             }));
         }));
-    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }], { name: 'end', raw: true }); }
+    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }], { name: 'end', raw: true }); },
+    'plus': function () { return new Node_1.OpNode('plus', function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return args.reduce(function (pv, cv) { return pv.add(cv).clone(); }, new three_1.Vector3(0, 0, 0));
+    }, [{ name: 'input', rest: true }], { name: 'output' }); }
 };
 //# sourceMappingURL=Ops.js.map

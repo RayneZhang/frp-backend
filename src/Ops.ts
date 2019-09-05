@@ -2,6 +2,7 @@ import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval, BehaviorSubject, of } from 'rxjs';
 import { take, delay, mergeMap, map, filter } from 'rxjs/operators';
 import { scene } from '.';
+import { Vector3 } from 'three';
 
 // unary ops accept *one* arguments
 function createUnaryOpNode(name: string, fn: (a: any) => any, arg1Name: string = 'a'): ()=>OpNode {
@@ -83,4 +84,8 @@ export const ops = {
         );
     }, [{ name: 'object', raw: true }, { name: 'event', raw: true }],
         { name: 'end', raw: true }),
+    'plus': () =>  new OpNode('plus', (...args: Vector3[]): Vector3 => {
+        return args.reduce((pv: Vector3, cv: Vector3) => pv.add(cv).clone(), new Vector3(0, 0, 0));
+    }, [{ name: 'input', rest: true }],
+        { name: 'output' }),
 }
