@@ -79,7 +79,10 @@ exports.ops = {
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
-        return args.reduce(function (pv, cv) { return pv.add(cv).clone(); }, new three_1.Vector3(0, 0, 0));
-    }, [{ name: 'input', rest: true }], { name: 'output' }); }
+        return args.reduce(function (pv, cv) { return pv.clone().add(cv); }, new three_1.Vector3(0, 0, 0));
+    }, [{ name: 'input', rest: true }], { name: 'output' }); },
+    'subtract': function () { return new Node_1.OpNode('subtract', function (vec1, vec2) {
+        return vec1.clone().sub(vec2);
+    }, [{ name: '+', rest: true }, { name: '-', rest: true }], { name: 'output' }); }
 };
 //# sourceMappingURL=Ops.js.map
