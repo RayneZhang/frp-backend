@@ -414,8 +414,6 @@ var ObjNode = /** @class */ (function (_super) {
             return rxjs_1.combineLatest.apply(void 0, args);
         })), _this.updateInfo);
         _this.out = inputsAndUpdates.pipe(operators_1.map(function (_a) {
-            // if (label === 'sphere')
-            // console.log(`${updates[1].name}, ${updates[1].value}`);
             var argValues = _a[0], updates = _a[1];
             var result = {};
             // Map each output name to the corresponding value.

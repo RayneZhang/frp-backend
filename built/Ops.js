@@ -82,7 +82,7 @@ exports.ops = {
         return args.reduce(function (pv, cv) { return pv.clone().add(cv); }, new three_1.Vector3(0, 0, 0));
     }, [{ name: 'input', rest: true }], { name: 'output' }); },
     'subtract': function () { return new Node_1.OpNode('subtract', function (vec1, vec2) {
-        return vec1.clone().sub(vec2);
-    }, [{ name: '+', rest: true }, { name: '-', rest: true }], { name: 'output' }); }
+        return null;
+    }, [{ name: '+', raw: true }, { name: '-', raw: true }], { name: 'output', raw: true }); }
 };
 //# sourceMappingURL=Ops.js.map

@@ -88,8 +88,8 @@ export const ops = {
         return args.reduce((pv: Vector3, cv: Vector3) => pv.clone().add(cv), new Vector3(0, 0, 0));
     }, [{ name: 'input', rest: true }],
         { name: 'output' }),
-    'subtract': () =>  new OpNode('subtract', (vec1: Vector3, vec2: Vector3): Vector3 => {
-        return vec1.clone().sub(vec2);
-    }, [{ name: '+', rest: true }, { name: '-', rest: true }],
-        { name: 'output' }),
+    'subtract': () =>  new OpNode('subtract', (vec1: Observable<Vector3>, vec2: Observable<Vector3>): Observable<Vector3> => {
+        return null;
+    }, [{ name: '+', raw: true }, { name: '-', raw: true }],
+        { name: 'output', raw: true }),
 }

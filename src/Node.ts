@@ -481,9 +481,6 @@ export class ObjNode extends StaticInfoNode {
 
         this.out = inputsAndUpdates.pipe(
             map(([argValues, updates] : [any[], UpdateInfo[]]) => {
-                // if (label === 'sphere')
-                // console.log(`${updates[1].name}, ${updates[1].value}`);
-
                 let result = {};
                 // Map each output name to the corresponding value.
                 outputs.forEach((prop: OutputInfo, i: number) => {
