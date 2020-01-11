@@ -509,3 +509,57 @@ export class ObjNode extends StaticInfoNode {
         
     }
 }
+
+/**
+ * Represents a puppet node that only updates the ouputs from function calls.
+ */
+export class PupNode extends StaticInfoNode {
+    protected outputVals: BehaviorSubject<any[]>; // The internal output property update stream
+
+    public constructor(label: string, inputs: InputInfo[], outputs: OutputInfo[]) {
+        super(label, inputs, outputs);
+        this.establishInputStream();
+        this.outputVals = new BehaviorSubject<any[]>(null);
+
+        // this.inputStream: a stream of (arrays of (streams of arg values) )
+        //   x: (1---2--3) -\
+        //                   >-- (+)
+        //   y: (5---6---) -/
+        // this.inputStream: Stream( [ Stream(1,2,3), Stream(5,6) ] )
+        this.out = this.inputStream.pipe(
+                mergeMap((args: Observable<any>[]) => {
+                    // args is an array of streams
+                    return combineLatest(...args);
+                }),
+                map((argValues: any[]) => { 
+                    let result = {};
+                    // Map each output name to the corresponding value.
+                    outputs.forEach((prop: OutputInfo, i: number) => {
+                        result[prop.name] = this.outputVals;
+                    });
+                    return result;
+                } //argValues is an array of arg values
+            )
+        );
+        this.establishOutputStream();
+    }
+
+    /***
+     * Allow subscribing to the latest inputs of the OpNode
+     */
+    public pluckInputs(): Observable<any> {
+        return this.inputStream.pipe(
+            mergeMap((args: Observable<any>[]) => {
+                // args is an array of streams
+                return combineLatest(...args);
+            }),
+            mergeMap((argValues: any[]) => {
+                return combineLatest(...argValues);
+            })
+        );
+    }
+
+    public updateOutput(name: string, _value: any): void {
+        this.outputVal.next(_value);
+    }
+}

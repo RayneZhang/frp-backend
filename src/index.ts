@@ -5,8 +5,8 @@ import { Scene } from './Scene';
 import { Vector3 } from 'three';
 export const scene: Scene = new Scene();
 
-// const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'position', default: new Vector3(0, 1, 1)}, {name: 'direction', default: new Vector3(0, 1, 1)}]);
-// const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'position', default: new Vector3(-1, 1, 1)}]);
+const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
+const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
 // const genericBullet = scene.addObj('genericbullet', [{name: 'object', default: 'sphere'}]);
 // const e = scene.addObj('e', [{name: 'condition', default: false}]);
 // const snapshot = scene.addOp('snapshot');
@@ -15,7 +15,13 @@ export const scene: Scene = new Scene();
 // const sub = scene.addOp('subtract');
 
 
-// scene.addEdge({node: cube, prop: 'position'}, {node: sub, prop: '+'});
+scene.addEdge({node: cube, prop: 'triggerdown'}, {node: sphere, prop: 'light_off'});
+sphere.pluckOutput('light_off').subscribe(function (value) {
+    console.log("cube_direction output is", value);
+})
+cube.update('triggerdown', true);
+cube.update('triggerdown', false);
+cube.update('triggerdown', true);
 // scene.addEdge({node: sphere, prop: 'position'}, {node: sub, prop: '-'});
 // scene.addEdge({node: sub, prop: 'output'}, {node: cube, prop: 'direction'});
 // sub.pluckOutput('output').subscribe(function (value) {

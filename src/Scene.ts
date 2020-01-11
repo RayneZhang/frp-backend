@@ -1,5 +1,5 @@
 import { Edge, Loc } from './Edge';
-import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, ObjNode, OpNode } from './Node';
+import { Node, ConstantNode, PROP_DEFAULT_NAME, InputInfo, ObjNode, OpNode, OutputInfo } from './Node';
 import  { ops }  from './Ops';
 import { combineLatest, BehaviorSubject, Observable } from 'rxjs';
 import update from 'immutability-helper';
@@ -62,6 +62,18 @@ export class Scene {
      * @param inputs The input infos with default values
      */
     public addObj(name: string, inputs: InputInfo[]): ObjNode {
+        const obj = new ObjNode(name, inputs);
+        this.addNode(obj);
+        return obj;
+    }
+
+    /**
+     * Add a static Operator in the scene, which menas that the inputs and outputs are updated from front-end.
+     * @param name The human-readable label of the object
+     * @param inputs The input infos with default values
+     * @param outpus The ouput infos with default values
+     */
+    public addPuppet(name: string, inputs: InputInfo[], outputs: OutputInfo[]): ObjNode {
         const obj = new ObjNode(name, inputs);
         this.addNode(obj);
         return obj;
