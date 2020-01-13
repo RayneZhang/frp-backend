@@ -478,10 +478,10 @@ var PupNode = /** @class */ (function (_super) {
      */
     PupNode.prototype.pluckInputs = function () {
         return this.inputStream.pipe(operators_1.mergeMap(function (args) {
+            if (args.indexOf(undefined) != -1)
+                return rxjs_1.combineLatest([]);
             // args is an array of streams
             return rxjs_1.combineLatest.apply(void 0, args);
-        }), operators_1.mergeMap(function (argValues) {
-            return rxjs_1.combineLatest.apply(void 0, argValues);
         }));
     };
     PupNode.prototype.updateOutput = function (name, _value) {
@@ -493,7 +493,6 @@ var PupNode = /** @class */ (function (_super) {
                 break;
             }
         }
-        console.log(latestOutput);
         this.outputVals.next(latestOutput);
     };
     return PupNode;

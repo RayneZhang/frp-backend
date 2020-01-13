@@ -1,13 +1,13 @@
 export { Scene } from './Scene';
-export { Node, ObjNode, OpNode } from './Node';
+export { Node, ObjNode, OpNode, PupNode } from './Node';
 export { Edge } from './Edge';
 import { Scene } from './Scene';
 import { Vector3 } from 'three';
 export const scene: Scene = new Scene();
 
-const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
-const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
-const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}], [{name: 'start'}, {name: 'end'}]);
+// const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
+// const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
+// const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}], [{name: 'start'}, {name: 'end'}]);
 // const genericBullet = scene.addObj('genericbullet', [{name: 'object', default: 'sphere'}]);
 // const e = scene.addObj('e', [{name: 'condition', default: false}]);
 // const snapshot = scene.addOp('snapshot');
@@ -15,17 +15,19 @@ const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}]
 // const destroy = scene.addOp('destroy');
 // const sub = scene.addOp('subtract');
 
-scene.addEdge({node: cube, prop: 'object'}, {node: collidePup, prop: 'obj1'});
-scene.addEdge({node: sphere, prop: 'object'}, {node: collidePup, prop: 'obj2'});
+// collidePup.pluckInputs().subscribe((value) => {
+//     console.log('inputs: ' + value);
+// });
 
-collidePup.pluckInputs().subscribe((value) => {
-    console.log('inputs: ' + value);
-});
-collidePup.pluckOutput('start').subscribe((value) => {
-    console.log(value);
-});
+// scene.addEdge({node: cube, prop: 'object'}, {node: collidePup, prop: 'obj1'});
+// scene.addEdge({node: sphere, prop: 'object'}, {node: collidePup, prop: 'obj2'});
 
-collidePup.updateOutput('start', true);
+
+// collidePup.pluckOutput('start').subscribe((value) => {
+//     console.log(value);
+// });
+
+// collidePup.updateOutput('start', true);
 
 // scene.addEdge({node: sphere, prop: 'position'}, {node: sub, prop: '-'});
 // scene.addEdge({node: sub, prop: 'output'}, {node: cube, prop: 'direction'});
