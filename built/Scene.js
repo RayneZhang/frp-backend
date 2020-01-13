@@ -61,6 +61,17 @@ var Scene = /** @class */ (function () {
         this.addNode(obj);
         return obj;
     };
+    /**
+     * Add a static Operator in the scene, which menas that the inputs and outputs are updated from front-end.
+     * @param name The human-readable label of the object
+     * @param inputs The input infos with default values
+     * @param outpus The ouput infos with default values
+     */
+    Scene.prototype.addPuppet = function (name, inputs, outputs) {
+        var pup = new Node_1.PupNode(name, inputs, outputs);
+        this.addNode(pup);
+        return pup;
+    };
     // Add any node to the scene
     Scene.prototype.addNode = function (node) {
         var nodesValue = this.nodesStream.getValue();

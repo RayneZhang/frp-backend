@@ -444,4 +444,59 @@ var ObjNode = /** @class */ (function (_super) {
     return ObjNode;
 }(StaticInfoNode));
 exports.ObjNode = ObjNode;
+/**
+ * Represents a puppet node that only updates the ouputs from function calls.
+ */
+var PupNode = /** @class */ (function (_super) {
+    __extends(PupNode, _super);
+    function PupNode(label, inputs, outputs) {
+        var _this = _super.call(this, label, inputs, outputs) || this;
+        _this.establishInputStream();
+        _this.outputVals = new rxjs_1.BehaviorSubject(null);
+        var initOutputs = new Array();
+        for (var i = 0; i < outputs.length; i++) {
+            var name_1 = outputs[i].name;
+            var out = {};
+            out.name = name_1;
+            out.value = null;
+            initOutputs.push(out);
+        }
+        _this.outputVals.next(initOutputs);
+        _this.out = _this.outputVals.pipe(operators_1.map(function (outValues) {
+            var result = {};
+            // Map each output name to the corresponding value.
+            outValues.forEach(function (prop, i) {
+                result[prop.name] = prop.value;
+            });
+            return result;
+        }));
+        _this.establishOutputStream();
+        return _this;
+    }
+    /***
+     * Allow subscribing to the latest inputs of the OpNode
+     */
+    PupNode.prototype.pluckInputs = function () {
+        return this.inputStream.pipe(operators_1.mergeMap(function (args) {
+            // args is an array of streams
+            return rxjs_1.combineLatest.apply(void 0, args);
+        }), operators_1.mergeMap(function (argValues) {
+            return rxjs_1.combineLatest.apply(void 0, argValues);
+        }));
+    };
+    PupNode.prototype.updateOutput = function (name, _value) {
+        var latestOutput = this.outputVals.getValue();
+        for (var i = 0; i < latestOutput.length; i++) {
+            // We also handled property names that do not exist.
+            if (latestOutput[i].name === name) {
+                latestOutput[i].value = _value;
+                break;
+            }
+        }
+        console.log(latestOutput);
+        this.outputVals.next(latestOutput);
+    };
+    return PupNode;
+}(StaticInfoNode));
+exports.PupNode = PupNode;
 //# sourceMappingURL=Node.js.map

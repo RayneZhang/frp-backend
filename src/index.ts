@@ -7,6 +7,7 @@ export const scene: Scene = new Scene();
 
 const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
+const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}], [{name: 'start'}, {name: 'end'}]);
 // const genericBullet = scene.addObj('genericbullet', [{name: 'object', default: 'sphere'}]);
 // const e = scene.addObj('e', [{name: 'condition', default: false}]);
 // const snapshot = scene.addOp('snapshot');
@@ -14,14 +15,18 @@ const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {nam
 // const destroy = scene.addOp('destroy');
 // const sub = scene.addOp('subtract');
 
+scene.addEdge({node: cube, prop: 'object'}, {node: collidePup, prop: 'obj1'});
+scene.addEdge({node: sphere, prop: 'object'}, {node: collidePup, prop: 'obj2'});
 
-scene.addEdge({node: cube, prop: 'triggerdown'}, {node: sphere, prop: 'light_off'});
-sphere.pluckOutput('light_off').subscribe(function (value) {
-    console.log("cube_direction output is", value);
-})
-cube.update('triggerdown', true);
-cube.update('triggerdown', false);
-cube.update('triggerdown', true);
+collidePup.pluckInputs().subscribe((value) => {
+    console.log('inputs: ' + value);
+});
+collidePup.pluckOutput('start').subscribe((value) => {
+    console.log(value);
+});
+
+collidePup.updateOutput('start', true);
+
 // scene.addEdge({node: sphere, prop: 'position'}, {node: sub, prop: '-'});
 // scene.addEdge({node: sub, prop: 'output'}, {node: cube, prop: 'direction'});
 // sub.pluckOutput('output').subscribe(function (value) {

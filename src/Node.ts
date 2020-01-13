@@ -521,25 +521,24 @@ export class PupNode extends StaticInfoNode {
         this.establishInputStream();
         this.outputVals = new BehaviorSubject<any[]>(null);
 
-        // this.inputStream: a stream of (arrays of (streams of arg values) )
-        //   x: (1---2--3) -\
-        //                   >-- (+)
-        //   y: (5---6---) -/
-        // this.inputStream: Stream( [ Stream(1,2,3), Stream(5,6) ] )
-        this.out = this.inputStream.pipe(
-                mergeMap((args: Observable<any>[]) => {
-                    // args is an array of streams
-                    return combineLatest(...args);
-                }),
-                map((argValues: any[]) => { 
-                    let result = {};
-                    // Map each output name to the corresponding value.
-                    outputs.forEach((prop: OutputInfo, i: number) => {
-                        result[prop.name] = this.outputVals;
-                    });
-                    return result;
-                } //argValues is an array of arg values
-            )
+        const initOutputs: any[] = new Array<any>();
+        for (let i = 0; i < outputs.length; i++) {
+            const name: string = outputs[i].name;
+            const out: any = {};
+            out.name = name;
+            out.value = null;
+            initOutputs.push(out);
+        }
+        this.outputVals.next(initOutputs);
+        this.out = this.outputVals.pipe(
+            map((outValues : any[]) => {
+                let result = {};
+                // Map each output name to the corresponding value.
+                outValues.forEach((prop: any, i: number) => {
+                    result[prop.name] = prop.value;
+                });
+                return result;
+            })
         );
         this.establishOutputStream();
     }
@@ -560,6 +559,14 @@ export class PupNode extends StaticInfoNode {
     }
 
     public updateOutput(name: string, _value: any): void {
-        this.outputVal.next(_value);
+        const latestOutput: any[] = this.outputVals.getValue();
+        for (let i = 0; i < latestOutput.length; i++) {
+            // We also handled property names that do not exist.
+            if (latestOutput[i].name === name) {
+                latestOutput[i].value = _value;
+                break;
+            }
+        }
+        this.outputVals.next(latestOutput);
     }
 }
