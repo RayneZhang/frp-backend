@@ -3,7 +3,7 @@ exports.__esModule = true;
 var Node_1 = require("./Node");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
-var _1 = require(".");
+// import { scene } from '.';
 var three_1 = require("three");
 // unary ops accept *one* arguments
 function createUnaryOpNode(name, fn, arg1Name) {
@@ -61,19 +61,23 @@ exports.ops = {
     'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
         return null;
     }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": rxjs_1.of(1) }], { name: 'end', raw: true }); },
-    'destroy': function () { return new Node_1.OpNode('destroy', function (object, event) {
-        return event.pipe(operators_1.mergeMap(function (e) {
-            return object.pipe(operators_1.take(1), operators_1.map(function (objName) {
-                var createdNode = _1.scene.getNode(objName);
-                if (!createdNode || !e)
-                    return false;
-                else {
-                    _1.scene.removeNode(createdNode);
-                    return true;
-                }
-            }));
-        }));
-    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }], { name: 'end', raw: true }); },
+    // 'destroy': () =>  new OpNode('destroy', (object: Observable<any>, event: Observable<any>): Observable<any> => {
+    //     return event.pipe(mergeMap((e: any) => {
+    //             return object.pipe(
+    //                 take(1),
+    //                 map((objName) => {
+    //                     const createdNode = scene.getNode(objName);
+    //                     if (!createdNode || !e) return false;
+    //                     else {
+    //                         scene.removeNode(createdNode);
+    //                         return true;
+    //                     }
+    //                 })
+    //             );
+    //         })
+    //     );
+    // }, [{ name: 'object', raw: true }, { name: 'event', raw: true }],
+    //     { name: 'end', raw: true }),
     'plus': function () { return new Node_1.OpNode('plus', function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {

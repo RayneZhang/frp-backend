@@ -2,8 +2,30 @@ export { Scene } from './Scene';
 export { Node, ObjNode, OpNode, PupNode } from './Node';
 export { Edge } from './Edge';
 import { Scene } from './Scene';
-import { Vector3 } from 'three';
+import { SceneDisplay } from './Display';
+
 export const scene: Scene = new Scene();
+
+const drawing =  new SceneDisplay('drawing', scene); // Create a drawing output (looks for a <div> with id='drawing')
+
+const ten = scene.addConstant(10);
+const twenty = scene.addConstant(20);
+const thirty = scene.addConstant(30);
+
+const plus = scene.addOp('+');
+
+scene.addEdge(ten, plus);
+scene.addEdge(twenty, plus); // Assumes default property ('')
+
+scene.addEdge({
+    node: thirty,
+    prop: ''
+}, {
+    node: plus,
+    prop: ''
+});
+
+scene.removeNode(thirty);
 
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 // const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);

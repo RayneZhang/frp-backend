@@ -10,7 +10,23 @@ exports.PupNode = Node_1.PupNode;
 var Edge_1 = require("./Edge");
 exports.Edge = Edge_1.Edge;
 var Scene_2 = require("./Scene");
+var Display_1 = require("./Display");
 exports.scene = new Scene_2.Scene();
+var drawing = new Display_1.SceneDisplay('drawing', exports.scene); // Create a drawing output (looks for a <div> with id='drawing')
+var ten = exports.scene.addConstant(10);
+var twenty = exports.scene.addConstant(20);
+var thirty = exports.scene.addConstant(30);
+var plus = exports.scene.addOp('+');
+exports.scene.addEdge(ten, plus);
+exports.scene.addEdge(twenty, plus); // Assumes default property ('')
+exports.scene.addEdge({
+    node: thirty,
+    prop: ''
+}, {
+    node: plus,
+    prop: ''
+});
+exports.scene.removeNode(thirty);
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 // const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
 // const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}], [{name: 'start'}, {name: 'end'}]);

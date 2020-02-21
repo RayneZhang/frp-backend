@@ -8,23 +8,46 @@
     </body>
 
     <script>
+        // const scene = new Scene();
+        // const drawing =  new SceneDisplay('drawing', scene);
+        // const a = scene.addConstant(2000);
+        // const gen = scene.addOp('gen');
+        // scene.addEdge(a, {node: gen, prop: 'delay'})
+        // const b = scene.addConstant(10);
+        // const p = scene.addOp('+');
+        // scene.addEdge(b, p);
+        // scene.addEdge(gen, p);
+        // const t = scene.addOp('take');
+        // const three = scene.addConstant(5);
+        // scene.addEdge(p, {node: t, prop: 'stream'});
+        // scene.addEdge(three, {node: t, prop: 'count'});
+        // const delay = scene.addOp('delay');
+        // scene.addEdge(t, {node: delay, prop: 'stream'});
+        // const d2 = scene.addConstant(700);
+        // scene.addEdge(d2, {node: delay, prop: 'delay'});
+
         const scene = new Scene();
-        const drawing =  new SceneDisplay('drawing', scene);
-        const a = scene.addConstant(2000);
-        const gen = scene.addOp('gen');
-        scene.addEdge(a, {node: gen, prop: 'delay'})
-        const b = scene.addConstant(10);
-        const p = scene.addOp('+');
-        scene.addEdge(b, p);
-        scene.addEdge(gen, p);
-        const t = scene.addOp('take');
-        const three = scene.addConstant(5);
-        scene.addEdge(p, {node: t, prop: 'stream'});
-        scene.addEdge(three, {node: t, prop: 'count'});
-        const delay = scene.addOp('delay');
-        scene.addEdge(t, {node: delay, prop: 'stream'});
-        const d2 = scene.addConstant(700);
-        scene.addEdge(d2, {node: delay, prop: 'delay'});
+
+        const drawing =  new SceneDisplay('drawing', scene); // Create a drawing output (looks for a <div> with id='drawing')
+
+        const ten = scene.addConstant(10);
+        const twenty = scene.addConstant(20);
+        const thirty = scene.addConstant(30);
+
+        const plus = scene.addOp('+');
+
+        scene.addEdge(ten, plus);
+        scene.addEdge(twenty, plus); // Assumes default property ('')
+
+        scene.addEdge({
+            node: thirty,
+            prop: ''
+        }, {
+            node: plus,
+            prop: ''
+        });
+
+        // scene.removeNode(thirty);
 
     </script>
 </htmlk
