@@ -1,9 +1,16 @@
 export { Scene } from './Scene';
 export { Node, ObjNode, OpNode, PupNode } from './Node';
 export { Edge } from './Edge';
-import { Scene } from './Scene';
 
+import { Scene } from './Scene';
 export const scene: Scene = new Scene();
+
+// const three = scene.addConstant(3000);
+// const interval = scene.addOp('interval');
+// scene.addEdge({node: three, prop: ''}, {node: interval, prop: 'period'});
+// interval.pluckOutput('').subscribe((value) => {
+//     console.log(value);
+// });
 
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 // const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);

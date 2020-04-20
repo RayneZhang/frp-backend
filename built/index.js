@@ -11,6 +11,12 @@ var Edge_1 = require("./Edge");
 exports.Edge = Edge_1.Edge;
 var Scene_2 = require("./Scene");
 exports.scene = new Scene_2.Scene();
+// const three = scene.addConstant(3000);
+// const interval = scene.addOp('interval');
+// scene.addEdge({node: three, prop: ''}, {node: interval, prop: 'period'});
+// interval.pluckOutput('').subscribe((value) => {
+//     console.log(value);
+// });
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 // const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
 // const collidePup = scene.addPuppet('collision', [{name: 'obj1'}, {name: 'obj2'}], [{name: 'start'}, {name: 'end'}]);
