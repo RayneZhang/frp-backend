@@ -1,7 +1,7 @@
 import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval, BehaviorSubject, of } from 'rxjs';
 import { take, delay, mergeMap, map, filter } from 'rxjs/operators';
-// import { scene } from '.';
+import { scene } from '.';
 import { Vector3 } from 'three';
 
 // unary ops accept *one* arguments
@@ -67,23 +67,23 @@ export const ops = {
                     return null;
                 }, [{ name: 'object', raw: true }, { name : 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, default: of(1)}],
                     { name: 'end', raw: true }),
-    // 'destroy': () =>  new OpNode('destroy', (object: Observable<any>, event: Observable<any>): Observable<any> => {
-    //     return event.pipe(mergeMap((e: any) => {
-    //             return object.pipe(
-    //                 take(1),
-    //                 map((objName) => {
-    //                     const createdNode = scene.getNode(objName);
-    //                     if (!createdNode || !e) return false;
-    //                     else {
-    //                         scene.removeNode(createdNode);
-    //                         return true;
-    //                     }
-    //                 })
-    //             );
-    //         })
-    //     );
-    // }, [{ name: 'object', raw: true }, { name: 'event', raw: true }],
-    //     { name: 'end', raw: true }),
+    'destroy': () =>  new OpNode('destroy', (object: Observable<any>, event: Observable<any>): Observable<any> => {
+        return event.pipe(mergeMap((e: any) => {
+                return object.pipe(
+                    take(1),
+                    map((objName) => {
+                        const createdNode = scene.getNode(objName);
+                        if (!createdNode || !e) return false;
+                        else {
+                            scene.removeNode(createdNode);
+                            return true;
+                        }
+                    })
+                );
+            })
+        );
+    }, [{ name: 'object', raw: true }, { name: 'event', raw: true }],
+        { name: 'end', raw: true }),
     'plus': () =>  new OpNode('plus', (...args: Vector3[]): Vector3 => {
         return args.reduce((pv: Vector3, cv: Vector3) => pv.clone().add(cv), new Vector3(0, 0, 0));
     }, [{ name: 'input', rest: true }],
