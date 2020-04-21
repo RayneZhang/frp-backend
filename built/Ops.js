@@ -55,9 +55,10 @@ exports.ops = {
             return signal.pipe(operators_1.take(1));
         }));
     }, [{ name: 'signal', raw: true }, { name: 'event', raw: true }], { name: 'output', raw: true }); },
-    'create': function () { return new Node_1.OpNode('create', function (object, position) {
-        return null;
-    }, [{ name: 'object', raw: true }, { name: 'position', raw: true }], { name: 'object', raw: true }); },
+    // 'create': () =>  new OpNode('create', (object: Observable<any>, position: Observable<any>): Observable<any> => {
+    //                 return null;
+    //             }, [{ name: 'object', raw: true }, { name: 'position', raw: true }],
+    //                 { name: 'object', raw: true }),
     'translate': function () { return new Node_1.OpNode('translate', function (object, from, to, speed) {
         return null;
     }, [{ name: 'object', raw: true }, { name: 'from', raw: true }, { name: 'to', raw: true }, { name: 'speed', raw: true, "default": rxjs_1.of(1) }], { name: 'end', raw: true }); },
