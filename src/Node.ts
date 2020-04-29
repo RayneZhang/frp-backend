@@ -548,7 +548,7 @@ export class PupNode extends StaticInfoNode {
      */
     public pluckInputs(): Observable<any> {
         return this.inputStream.pipe(
-            mergeMap((args: Observable<any>[]) => {
+            switchMap((args: Observable<any>[]) => {
                 if (args.indexOf(undefined) != -1)
                     return combineLatest([]);
                 // args is an array of streams

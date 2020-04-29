@@ -477,7 +477,7 @@ var PupNode = /** @class */ (function (_super) {
      * Allow subscribing to the latest inputs of the OpNode
      */
     PupNode.prototype.pluckInputs = function () {
-        return this.inputStream.pipe(operators_1.mergeMap(function (args) {
+        return this.inputStream.pipe(operators_1.switchMap(function (args) {
             if (args.indexOf(undefined) != -1)
                 return rxjs_1.combineLatest([]);
             // args is an array of streams
