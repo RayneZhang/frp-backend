@@ -88,6 +88,22 @@ export const ops = {
         return args.reduce((pv: Vector3, cv: Vector3) => pv.clone().add(cv), new Vector3(0, 0, 0));
     }, [{ name: 'input', rest: true }],
         { name: 'output' }),
+    '+ (number)': () =>  new OpNode('+ (number)', (...args: number[]): number => {
+        return args.reduce((pv: number, cv: number) => pv+cv, 0);
+    }, [{ name: 'input', rest: true }],
+        { name: 'output' }),
+    '- (number)': () =>  new OpNode('+ (number)', (...args: number[]): number => {
+        return args.reduce((pv: number, cv: number) => pv-cv, 0);
+    }, [{ name: 'input', rest: true }],
+        { name: 'output' }),
+    '* (number)': () =>  new OpNode('+ (number)', (...args: number[]): number => {
+        return args.reduce((pv: number, cv: number) => pv*cv, 0);
+    }, [{ name: 'input', rest: true }],
+        { name: 'output' }),
+    '/ (number)': () =>  new OpNode('+ (number)', (...args: number[]): number => {
+        return args.reduce((pv: number, cv: number) => pv/cv, 0);
+    }, [{ name: 'input', rest: true }],
+        { name: 'output' }),
     'subtract': () =>  new OpNode('subtract', (vec1: Observable<Vector3>, vec2: Observable<Vector3>): Observable<Vector3> => {
         return null;
     }, [{ name: '+', raw: true }, { name: '-', raw: true }],

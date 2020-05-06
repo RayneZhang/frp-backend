@@ -82,6 +82,34 @@ exports.ops = {
         }
         return args.reduce(function (pv, cv) { return pv.clone().add(cv); }, new three_1.Vector3(0, 0, 0));
     }, [{ name: 'input', rest: true }], { name: 'output' }); },
+    '+ (number)': function () { return new Node_1.OpNode('+ (number)', function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return args.reduce(function (pv, cv) { return pv + cv; }, 0);
+    }, [{ name: 'input', rest: true }], { name: 'output' }); },
+    '- (number)': function () { return new Node_1.OpNode('+ (number)', function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return args.reduce(function (pv, cv) { return pv - cv; }, 0);
+    }, [{ name: 'input', rest: true }], { name: 'output' }); },
+    '* (number)': function () { return new Node_1.OpNode('+ (number)', function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return args.reduce(function (pv, cv) { return pv * cv; }, 0);
+    }, [{ name: 'input', rest: true }], { name: 'output' }); },
+    '/ (number)': function () { return new Node_1.OpNode('+ (number)', function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return args.reduce(function (pv, cv) { return pv / cv; }, 0);
+    }, [{ name: 'input', rest: true }], { name: 'output' }); },
     'subtract': function () { return new Node_1.OpNode('subtract', function (vec1, vec2) {
         return null;
     }, [{ name: '+', raw: true }, { name: '-', raw: true }], { name: 'output', raw: true }); }
