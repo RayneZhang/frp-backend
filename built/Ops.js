@@ -48,8 +48,12 @@ exports.ops = {
         return rxjs_1.interval(period);
     }, [{ name: 'period' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'delay': function () { return new Node_1.OpNode('delay', function (stream, d) {
-        return stream.pipe(operators_1.delay(d));
-    }, [{ name: 'stream', raw: true }, { name: 'delay' }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
+        return stream.pipe(operators_1.switchMap(function (streamValue) {
+            return d.pipe(
+            // Delay the stream by the value emitted by d
+            operators_1.delay(streamValue));
+        }));
+    }, [{ name: 'stream', raw: true }, { name: 'delay', raw: true }], { name: Node_1.PROP_DEFAULT_NAME, raw: true }); },
     'snapshot': function () { return new Node_1.OpNode('snapshot', function (signal, event) {
         return event.pipe(operators_1.filter(function (e) { return e; }), operators_1.mergeMap(function () {
             return signal.pipe(operators_1.take(1));

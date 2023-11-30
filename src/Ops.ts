@@ -1,6 +1,6 @@
 import { Node, OpNode,  PROP_DEFAULT_NAME, GenNode } from './Node';
 import { Observable, interval, BehaviorSubject, of } from 'rxjs';
-import { take, delay, mergeMap, map, filter } from 'rxjs/operators';
+import { take, delay, mergeMap, map, filter, switchMap } from 'rxjs/operators';
 import { scene } from '.';
 import { Vector3 } from 'three';
 
@@ -46,9 +46,15 @@ export const ops = {
                     return interval(period);
                 }, [{ name: 'period' }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
-    'delay': () =>  new OpNode('delay', (stream: Observable<any>, d: number): Observable<any> => {
-                    return stream.pipe(delay(d));
-                }, [{ name: 'stream', raw: true}, { name: 'delay' }],
+    'delay': () =>  new OpNode('delay', (stream: Observable<any>, d: Observable<any>): Observable<any> => {
+                    return stream.pipe(
+                        switchMap((streamValue) =>
+                            d.pipe(
+                            // Delay the stream by the value emitted by d
+                            delay(streamValue)
+                            )
+                        ));
+                }, [{ name: 'stream', raw: true}, { name: 'delay', raw: true }],
                     { name: PROP_DEFAULT_NAME, raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
                     return event.pipe(
