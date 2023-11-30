@@ -11,10 +11,17 @@ var Edge_1 = require("./Edge");
 exports.Edge = Edge_1.Edge;
 var Scene_2 = require("./Scene");
 exports.scene = new Scene_2.Scene();
-// const three = scene.addConstant(3000);
-// const interval = scene.addOp('interval');
-// scene.addEdge({node: three, prop: ''}, {node: interval, prop: 'period'});
-// interval.pluckOutput('').subscribe((value) => {
+// const props: any = [{ name: 'object', default: `node-1` }, { name: '', default: 5000 }];
+// const source = scene.addObj('source', props);
+// const delay = scene.addOp('delay');
+// scene.addEdge({node: source, prop: ''}, {node: delay, prop: 'delay'});
+// const test = scene.addConstant(5);
+// scene.addEdge({node: test, prop: ''}, {node: delay, prop: 'stream'});
+// source.update('', 1000);
+// source.pluckOutput('').subscribe((value) => {
+//     console.log(value);
+// });
+// delay.pluckOutput('').subscribe((value) => {
 //     console.log(value);
 // });
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
