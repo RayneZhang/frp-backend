@@ -54,7 +54,7 @@ export const ops = {
                         })
                     )
                 }, [{ name: 'stream', raw: true}, { name: 'delay', raw: true }],
-                    { name: PROP_DEFAULT_NAME, raw: true }),
+                    { name: 'output', raw: true }),
     'snapshot': () =>  new OpNode('snapshot', (signal: Observable<any>, event: Observable<any>): Observable<any> => {
                     return event.pipe(
                         filter((e) => e),
