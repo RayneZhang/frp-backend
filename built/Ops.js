@@ -50,6 +50,8 @@ exports.ops = {
     'delay': function () { return new Node_1.OpNode('delay', function (stream, d) {
         return stream.pipe(operators_1.withLatestFrom(d), operators_1.concatMap(function (_a) {
             var streamValue = _a[0], delayValue = _a[1];
+            if (streamValue == false)
+                delayValue = 0;
             return rxjs_1.of(streamValue).pipe(operators_1.delay(delayValue));
         }));
     }, [{ name: 'stream', raw: true }, { name: 'delay', raw: true }], { name: 'output', raw: true }); },

@@ -20,13 +20,24 @@ exports.scene = new Scene_2.Scene();
 // source.pluckOutput('').subscribe((value) => {
 //     console.log(value);
 // });
-// delay.pluckOutput('').subscribe((value) => {
+// delay.pluckOutput('output').subscribe((value) => {
 //     console.log(value);
 // });
 // test.update('trigger', false);
 // source.update('', 1000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
 // test.update('trigger', true);
 // source.update('', 1000);
+// test.update('trigger', false);
 // source.update('', 1000);
 // source.update('', 1000);
 // source.update('', 1000);

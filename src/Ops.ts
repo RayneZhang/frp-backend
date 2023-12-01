@@ -50,6 +50,7 @@ export const ops = {
                     return stream.pipe(
                         withLatestFrom(d),
                         concatMap(([streamValue, delayValue]) => {
+                            if (streamValue == false) delayValue = 0;
                             return of(streamValue).pipe(delay(delayValue));
                         })
                     )

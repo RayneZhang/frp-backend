@@ -17,19 +17,34 @@ export const scene: Scene = new Scene();
 // source.pluckOutput('').subscribe((value) => {
 //     console.log(value);
 // });
-// delay.pluckOutput('').subscribe((value) => {
+// delay.pluckOutput('output').subscribe((value) => {
 //     console.log(value);
 // });
 
 // test.update('trigger', false);
 // source.update('', 1000);
 
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+// test.update('trigger', false);
+// source.update('', 5000);
+
+
 // test.update('trigger', true);
+
+// source.update('', 1000);
+// test.update('trigger', false);
 // source.update('', 1000);
 // source.update('', 1000);
 // source.update('', 1000);
 // source.update('', 1000);
-// source.update('', 1000);
+
 
 // const cube = scene.addObj('cube', [{name: 'object', default: 'cube'}, {name: 'triggerdown', default: false}]);
 // const sphere = scene.addObj('sphere', [{name: 'object', default: 'sphere'}, {name: 'light_off', default: ''}]);
